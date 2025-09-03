@@ -3,8 +3,8 @@ import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
 import CreateForm from "layouts/create-form";
 import CreateCategory from "layouts/create-category";
-import UsersTable from "layouts/users-table"; // Users Table
-import EditUsers from "layouts/edit-users"; // <-- Edit Users / Edit Roles page
+import UsersTable from "layouts/users-table";
+import EditUsers from "layouts/edit-users";
 
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
@@ -24,6 +24,8 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
+    roles: ["Chief Admin", "Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
@@ -32,6 +34,8 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
     component: <Tables />,
+    roles: ["Chief Admin", "Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
@@ -40,6 +44,8 @@ const routes = [
     route: "/create-form",
     icon: <Icon>note_add</Icon>,
     component: <CreateForm />,
+    roles: ["Chief Admin", "Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
@@ -48,6 +54,8 @@ const routes = [
     route: "/create-category",
     icon: <Icon>category</Icon>,
     component: <CreateCategory />,
+    roles: ["Chief Admin", "Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
@@ -56,14 +64,18 @@ const routes = [
     route: "/users-table",
     icon: <Icon>people</Icon>,
     component: <UsersTable />,
+    roles: ["Chief Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
     name: "Edit Users",
     key: "edit-users",
-    route: "/edit-users", // <-- URL for edit roles
-    icon: <Icon>edit</Icon>, // <-- icon
-    component: <EditUsers />, // <-- component
+    route: "/edit-users",
+    icon: <Icon>edit</Icon>,
+    component: <EditUsers />,
+    roles: ["Chief Admin"],
+    protected: true, // ✅
   },
   {
     type: "collapse",
@@ -72,6 +84,8 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     component: <Profile />,
+    roles: ["Chief Admin", "Admin", "Visitor"],
+    protected: true, // ✅ everyone logged in
   },
   {
     type: "collapse",
@@ -80,6 +94,7 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
     component: <SignIn />,
+    public: true, // ✅
   },
   {
     type: "collapse",
@@ -88,6 +103,7 @@ const routes = [
     icon: <Icon fontSize="small">assignment</Icon>,
     route: "/authentication/sign-up",
     component: <SignUp />,
+    public: true, // ✅
   },
 ];
 
