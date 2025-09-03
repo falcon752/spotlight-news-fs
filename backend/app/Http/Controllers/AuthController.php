@@ -70,7 +70,8 @@ public function login(Request $request)
             'email' => $author->email,
             'slug' => $author->slug,
             'role' => $author->role,
-            'avatar' => $author->avatar,
+            'avatar' => $author->avatar_url, // <-- full URL
+
         ],
     ]);
 }

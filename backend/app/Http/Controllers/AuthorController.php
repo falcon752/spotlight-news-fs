@@ -23,6 +23,29 @@ class AuthorController extends Controller
         return response()->json($author);
     }
 
+    // Fetch currently authenticated author
+    public function me(Request $request)
+    {
+        $author = $request->user(); // Authenticated author
+
+        if (!$author) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        // Return author with avatar as full URL
+        return response()->json([
+            'author' => [
+                'id' => $author->id,
+                'name' => $author->name,
+                'email' => $author->email,
+                'slug' => $author->slug,
+                'role' => $author->role,
+                'avatar' => $author->avatar_url, // <-- full URL
+
+            ],
+        ]);
+    }
+
     // Create a new author
     public function store(Request $request)
     {
@@ -35,10 +58,10 @@ class AuthorController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $avatarName = $request->file('avatar')->getClientOriginalName();
-            $request->file('avatar')->move(public_path('avatars'), $avatarName);
-            $data['avatar'] = $avatarName;
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $path;
         }
+
 
         $data['slug'] = Str::slug($data['name']);
         $data['password'] = Hash::make($data['password']);
@@ -47,6 +70,27 @@ class AuthorController extends Controller
 
         return response()->json($author, 201);
     }
+
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $author = $request->user();
+
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $author->avatar = $path;
+            $author->save();
+        }
+
+        return response()->json([
+            'message' => 'Avatar updated successfully',
+            'avatar' => $author->avatar_url, // accessor from Author.php
+        ]);
+    }
+
 
     // Update an author
     public function update(Request $request, $id)
@@ -62,10 +106,10 @@ class AuthorController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $avatarName = $request->file('avatar')->getClientOriginalName();
-            $request->file('avatar')->move(public_path('avatars'), $avatarName);
-            $data['avatar'] = $avatarName;
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $path; // stored as avatars/filename.jpg
         }
+
 
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);

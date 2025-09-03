@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable; // allows login
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // <-- add this for API tokens
+use Laravel\Sanctum\HasApiTokens; // API tokens
 
 class Author extends Authenticatable
 {
@@ -39,4 +39,13 @@ class Author extends Authenticatable
     {
         return $this->hasMany(Video::class);
     }
+
+    // Accessor for avatar full URL
+    public function getAvatarUrlAttribute()
+    {
+        return $this->avatar
+            ? asset('storage/' . $this->avatar) // Correct public URL
+            : asset('storage/avatars/default_avatar.png'); // default avatar
+    }
+
 }
