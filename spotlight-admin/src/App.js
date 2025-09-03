@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 
 // react-router components
@@ -11,6 +10,7 @@ import Icon from "@mui/material/Icon";
 
 // Spotlight Admin components
 import MDBox from "components/MDBox";
+import Unauthorized from "layouts/unauthorized";
 
 // Spotlight Admin example components
 import Sidenav from "examples/Sidenav";
@@ -33,7 +33,11 @@ import createCache from "@emotion/cache";
 import routes from "routes";
 
 // Spotlight Admin contexts
-import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
+import {
+  useMaterialUIController,
+  setMiniSidenav,
+  setOpenConfigurator,
+} from "context";
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
@@ -82,7 +86,8 @@ export default function App() {
   };
 
   // Change the openConfigurator state
-  const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
+  const handleConfiguratorOpen = () =>
+    setOpenConfigurator(dispatch, !openConfigurator);
 
   // Setting the dir attribute for the body element
   useEffect(() => {
@@ -102,7 +107,14 @@ export default function App() {
       }
 
       if (route.route) {
-        return <Route exact path={route.route} element={route.component} key={route.key} />;
+        return (
+          <Route
+            exact
+            path={route.route}
+            element={route.component}
+            key={route.key}
+          />
+        );
       }
 
       return null;
@@ -140,7 +152,11 @@ export default function App() {
           <>
             <Sidenav
               color={sidenavColor}
-              brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+              brand={
+                (transparentSidenav && !darkMode) || whiteSidenav
+                  ? brandDark
+                  : brandWhite
+              }
               brandName="Spotlight Admin"
               routes={routes}
               onMouseEnter={handleOnMouseEnter}
@@ -164,7 +180,11 @@ export default function App() {
         <>
           <Sidenav
             color={sidenavColor}
-            brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+            brand={
+              (transparentSidenav && !darkMode) || whiteSidenav
+                ? brandDark
+                : brandWhite
+            }
             brandName="Spotlight Admin"
             routes={routes}
             onMouseEnter={handleOnMouseEnter}
@@ -178,6 +198,7 @@ export default function App() {
       <Routes>
         {getRoutes(routes)}
         <Route path="*" element={<Navigate to="/dashboard" />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </Routes>
     </ThemeProvider>
   );

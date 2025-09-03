@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Illuminate\Support\Facades\Hash;
 
 
 use Illuminate\Http\Request;
@@ -17,7 +18,8 @@ class AuthController extends Controller
         'email' => 'required|email|unique:authors,email',
         'password' => 'required|string|min:6|confirmed',
         'role' => 'nullable|in:Chief Admin,Admin,Visitor',
-        'avatar' => 'nullable|image|max:2048', // optional
+        'avatar' => 'nullable|image|mimes:jpg,jpeg,png,svg,JPG,JPEG,PNG,SVG|max:2048', // <-- updated
+
     ]);
 
     // Handle avatar upload if present
@@ -32,7 +34,7 @@ class AuthController extends Controller
     $author = Author::create([
         'name' => $request->name,
         'email' => $request->email,
-        'password' => $request->password, // hashed automatically
+        'password' => Hash::make($request->password), // <-- hashed password
         'slug' => $slug,
         'role' => $request->role ?? 'Visitor',
         'avatar' => $avatarPath,
@@ -42,19 +44,24 @@ class AuthController extends Controller
 }
 public function login(Request $request)
 {
+    // Validate only email and password
     $request->validate([
         'email' => 'required|email',
-        'password' => 'required',
+        'password' => 'required|string',
     ]);
 
+    // Find author by email
     $author = Author::where('email', $request->email)->first();
 
-    if (!$author || !\Hash::check($request->password, $author->password)) {
+    // Check if author exists and password is correct
+    if (!$author || !Hash::check($request->password, $author->password)) {
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
+    // Create a new API token
     $token = $author->createToken('auth_token')->plainTextToken;
 
+    // Return author info and token
     return response()->json([
         'access_token' => $token,
         'token_type' => 'Bearer',
@@ -67,6 +74,7 @@ public function login(Request $request)
         ],
     ]);
 }
+
 
 
 

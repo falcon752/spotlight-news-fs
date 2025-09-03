@@ -10,8 +10,8 @@ import MDButton from "components/MDButton";
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
 
-import axiosAdmin from "api/axiosAdmin"; // Axios instance
-import useAuthStore from "store/authStore"; // Zustand auth store
+import axiosAdmin from "api/axiosAdmin";
+import useAuthStore from "store/authStore";
 
 function Cover() {
   const navigate = useNavigate();
@@ -21,16 +21,42 @@ function Cover() {
   const [selectedImage, setSelectedImage] = useState(null);
 
   // Form state
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Visitor");
-  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: false,
+  });
+
+  // Validation errors
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeTerms: "",
+    avatar: "",
+    submit: "",
+  });
+
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+    setErrors({ ...errors, [field]: "" }); // Clear error on change
+  };
 
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
-    if (file) setSelectedImage(file);
+    if (file) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/svg+xml"];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors({ ...errors, avatar: "Invalid image type" });
+        setSelectedImage(null);
+      } else {
+        setSelectedImage(file);
+        setErrors({ ...errors, avatar: "" });
+      }
+    }
   };
 
   const triggerFileSelect = () => {
@@ -40,38 +66,61 @@ function Cover() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Terms & Conditions check
-    if (!agreeTerms) {
-      alert("You must agree to the terms and conditions.");
+    let hasError = false;
+    const newErrors = {};
+
+    if (!formData.name) {
+      newErrors.name = "Name is required";
+      hasError = true;
+    }
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+      hasError = true;
+    }
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+      hasError = true;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+      hasError = true;
+    }
+    if (!formData.agreeTerms) {
+      newErrors.agreeTerms = "You must agree to the terms";
+      hasError = true;
+    }
+    if (selectedImage && errors.avatar) {
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors({ ...errors, ...newErrors });
       return;
     }
 
-    // Password confirmation check
-    if (password !== confirmPassword) {
-      alert("Passwords do not match.");
-      return;
-    }
-
-    // Prepare FormData for file upload
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("email", email);
-    formData.append("password", password);
-    formData.append("password_confirmation", confirmPassword);
-    formData.append("role", role);
-    if (selectedImage) formData.append("avatar", selectedImage);
+    // Prepare FormData for backend
+    const payload = new FormData();
+    payload.append("name", formData.name);
+    payload.append("email", formData.email);
+    payload.append("password", formData.password);
+    payload.append("password_confirmation", formData.confirmPassword);
+    payload.append("role", "Visitor"); // <-- assign Visitor by default
+    if (selectedImage) payload.append("avatar", selectedImage);
 
     try {
-      const res = await axiosAdmin.post("/register", formData);
+      const res = await axiosAdmin.post("/register", payload);
 
-      // Save author info in store (token null for now)
-      setAuth(res.data.author, null);
+      // Optionally, you can store the user info if needed
+      // setAuth(res.data.author, null);
 
-      alert("Registration successful!");
-      navigate("/authentication/sign-in");
+      // Redirect Visitor to /unauthorized
+      navigate("/unauthorized");
     } catch (err) {
       console.error(err.response);
-      alert(err.response?.data?.message || "Registration failed");
+      setErrors({
+        ...errors,
+        submit: err.response?.data?.message || "Registration failed",
+      });
     }
   };
 
@@ -106,10 +155,11 @@ function Cover() {
                 label="Name"
                 variant="standard"
                 fullWidth
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
                 required
               />
+              {errors.name && <MDTypography color="error">{errors.name}</MDTypography>}
             </MDBox>
 
             {/* Email */}
@@ -119,10 +169,11 @@ function Cover() {
                 label="Email"
                 variant="standard"
                 fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={formData.email}
+                onChange={(e) => handleChange("email", e.target.value)}
                 required
               />
+              {errors.email && <MDTypography color="error">{errors.email}</MDTypography>}
             </MDBox>
 
             {/* Password */}
@@ -132,10 +183,11 @@ function Cover() {
                 label="Password"
                 variant="standard"
                 fullWidth
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
                 required
               />
+              {errors.password && <MDTypography color="error">{errors.password}</MDTypography>}
             </MDBox>
 
             {/* Confirm Password */}
@@ -145,35 +197,20 @@ function Cover() {
                 label="Confirm Password"
                 variant="standard"
                 fullWidth
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                value={formData.confirmPassword}
+                onChange={(e) => handleChange("confirmPassword", e.target.value)}
                 required
               />
-            </MDBox>
-
-            {/* Role */}
-            <MDBox mb={2}>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  borderRadius: "4px",
-                  border: "1px solid #ccc",
-                }}
-              >
-                <option value="Visitor">Visitor</option>
-                <option value="Admin">Admin</option>
-                <option value="Chief Admin">Chief Admin</option>
-              </select>
+              {errors.confirmPassword && (
+                <MDTypography color="error">{errors.confirmPassword}</MDTypography>
+              )}
             </MDBox>
 
             {/* Terms */}
-            <MDBox display="flex" alignItems="center" ml={-1}>
+            <MDBox display="flex" alignItems="center" ml={-1} mb={2}>
               <Checkbox
-                checked={agreeTerms}
-                onChange={(e) => setAgreeTerms(e.target.checked)}
+                checked={formData.agreeTerms}
+                onChange={(e) => handleChange("agreeTerms", e.target.checked)}
               />
               <MDTypography
                 variant="button"
@@ -193,6 +230,11 @@ function Cover() {
               >
                 Terms and Conditions
               </MDTypography>
+              {errors.agreeTerms && (
+                <MDTypography color="error" sx={{ ml: 2 }}>
+                  {errors.agreeTerms}
+                </MDTypography>
+              )}
             </MDBox>
 
             {/* Profile Image */}
@@ -207,11 +249,12 @@ function Cover() {
               </MDButton>
               <input
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png,.svg,.JPG,.JPEG,.PNG,.SVG"
                 ref={fileInputRef}
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
               />
+              {errors.avatar && <MDTypography color="error">{errors.avatar}</MDTypography>}
               {selectedImage && (
                 <MDBox mt={2} textAlign="center">
                   <img
@@ -228,6 +271,7 @@ function Cover() {
               <MDButton type="submit" variant="gradient" color="info" fullWidth>
                 Sign Up
               </MDButton>
+              {errors.submit && <MDTypography color="error">{errors.submit}</MDTypography>}
             </MDBox>
 
             {/* Login link */}
