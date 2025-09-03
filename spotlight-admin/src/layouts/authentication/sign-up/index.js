@@ -48,7 +48,12 @@ function Cover() {
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/svg+xml"];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/svg+xml",
+      ];
       if (!allowedTypes.includes(file.type)) {
         setErrors({ ...errors, avatar: "Invalid image type" });
         setSelectedImage(null);
@@ -159,7 +164,9 @@ function Cover() {
                 onChange={(e) => handleChange("name", e.target.value)}
                 required
               />
-              {errors.name && <MDTypography color="error">{errors.name}</MDTypography>}
+              {errors.name && (
+                <MDTypography color="error">{errors.name}</MDTypography>
+              )}
             </MDBox>
 
             {/* Email */}
@@ -173,7 +180,9 @@ function Cover() {
                 onChange={(e) => handleChange("email", e.target.value)}
                 required
               />
-              {errors.email && <MDTypography color="error">{errors.email}</MDTypography>}
+              {errors.email && (
+                <MDTypography color="error">{errors.email}</MDTypography>
+              )}
             </MDBox>
 
             {/* Password */}
@@ -187,7 +196,9 @@ function Cover() {
                 onChange={(e) => handleChange("password", e.target.value)}
                 required
               />
-              {errors.password && <MDTypography color="error">{errors.password}</MDTypography>}
+              {errors.password && (
+                <MDTypography color="error">{errors.password}</MDTypography>
+              )}
             </MDBox>
 
             {/* Confirm Password */}
@@ -198,11 +209,15 @@ function Cover() {
                 variant="standard"
                 fullWidth
                 value={formData.confirmPassword}
-                onChange={(e) => handleChange("confirmPassword", e.target.value)}
+                onChange={(e) =>
+                  handleChange("confirmPassword", e.target.value)
+                }
                 required
               />
               {errors.confirmPassword && (
-                <MDTypography color="error">{errors.confirmPassword}</MDTypography>
+                <MDTypography color="error">
+                  {errors.confirmPassword}
+                </MDTypography>
               )}
             </MDBox>
 
@@ -245,7 +260,9 @@ function Cover() {
                 onClick={triggerFileSelect}
                 fullWidth
               >
-                {selectedImage ? "Change Profile Image" : "Select Profile Image"}
+                {selectedImage
+                  ? "Change Profile Image"
+                  : "Select Profile Image"}
               </MDButton>
               <input
                 type="file"
@@ -254,25 +271,34 @@ function Cover() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
               />
-              {errors.avatar && <MDTypography color="error">{errors.avatar}</MDTypography>}
+              {errors.avatar && (
+                <MDTypography color="error">{errors.avatar}</MDTypography>
+              )}
               {selectedImage && (
                 <MDBox mt={2} textAlign="center">
                   <img
                     src={URL.createObjectURL(selectedImage)}
                     alt="Profile Preview"
-                    style={{ width: "100px", height: "100px", borderRadius: "50%" }}
+                    style={{
+                      width: "100px",
+                      height: "100px",
+                      borderRadius: "50%",
+                    }}
                   />
                 </MDBox>
               )}
             </MDBox>
 
             {/* Submit */}
-            <MDBox mt={4} mb={1}>
-              <MDButton type="submit" variant="gradient" color="info" fullWidth>
-                Sign Up
-              </MDButton>
-              {errors.submit && <MDTypography color="error">{errors.submit}</MDTypography>}
-            </MDBox>
+            <MDButton
+              type="submit"
+              variant="gradient"
+              color="info"
+              fullWidth
+              sx={{ position: "relative", zIndex: 20 }}
+            >
+              Sign Up
+            </MDButton>
 
             {/* Login link */}
             <MDBox mt={3} mb={1} textAlign="center">
