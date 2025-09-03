@@ -1,0 +1,42 @@
+a,
+a:link,
+a:visited,
+a:hover,
+a:active {
+  text-decoration: none !important;
+}
+
+
+/* Make modal wider and dark */
+.swal2-video-popup {
+  padding: 0 !important;
+  background: #000 !important;
+
+}
+
+/* White, smaller title */
+.swal2-video-title {
+  color: #fff !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  margin-bottom: 12px !important;
+}
+
+
+.sticky-sidebar {
+  position: sticky;
+  top: 100px;
+  /* distance from top of screen */
+  height: fit-content;
+  align-self: flex-start;
+}
+
+
+f75815
+
+
+.donate {
+  background-color: #f75815;
+  color: white;
+  border: none;
+}
