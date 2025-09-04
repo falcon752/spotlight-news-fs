@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import MDBox from "components/MDBox";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -10,11 +11,13 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 // Data
 import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-import { posts, videos, authors } from "store/mockData";
+import { posts, videos } from "store/mockData"; // only posts and videos
 
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+
+import useAuthStore from "store/authStore"; // Zustand store
 
 // Helper to calculate percentage change
 const calculatePercentage = (current, previous) => {
@@ -24,6 +27,13 @@ const calculatePercentage = (current, previous) => {
 };
 
 function Dashboard() {
+  const { authors, fetchAuthors, isLoading } = useAuthStore();
+
+  // Fetch authors on mount
+  useEffect(() => {
+    fetchAuthors();
+  }, [fetchAuthors]);
+
   // Simulated previous counts (replace with real historical data)
   const prevPosts = 2;
   const prevVideos = 3;
@@ -34,6 +44,18 @@ function Dashboard() {
   const authorsChange = calculatePercentage(authors.length, prevAuthors);
 
   const { sales, tasks } = reportsLineChartData;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <DashboardNavbar />
+        <MDBox py={3} textAlign="center">
+          Loading dashboard...
+        </MDBox>
+        <Footer />
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -82,10 +104,10 @@ function Dashboard() {
                 color="success"
                 icon="person"
                 title="Total Users"
-                count={authors.length}
+                count={authors.length} // from Zustand store
                 percentage={{
                   color: authors.length - prevAuthors >= 0 ? "success" : "error",
-                  amount: authorsChange,
+                  amount: `${authorsChange}%`,
                   label: "compared to last week",
                 }}
               />
@@ -124,6 +146,7 @@ function Dashboard() {
                 />
               </MDBox>
             </Grid>
+
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
@@ -139,6 +162,7 @@ function Dashboard() {
                 />
               </MDBox>
             </Grid>
+
             <Grid item xs={12} md={6} lg={4}>
               <MDBox mb={3}>
                 <ReportsLineChart
