@@ -1,11 +1,14 @@
 <?php
 
+
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable; // allows login
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // API tokens
+use Illuminate\Support\Facades\Storage;
 
 class Author extends Authenticatable
 {
@@ -29,6 +32,9 @@ class Author extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    // Automatically append avatar_url to JSON
+    protected $appends = ['avatar_url'];
+
     // Relationships
     public function posts()
     {
@@ -43,9 +49,12 @@ class Author extends Authenticatable
     // Accessor for avatar full URL
     public function getAvatarUrlAttribute()
     {
-        return $this->avatar
-            ? asset('storage/' . $this->avatar) // Correct public URL
-            : asset('storage/avatars/default_avatar.png'); // default avatar
-    }
+        if ($this->avatar) {
+            // Return full URL to avatar stored in 'storage/app/public/avatars/...'
+            return asset('storage/' . $this->avatar);
+        }
 
+        // Return default avatar if user has none
+        return asset('storage/avatars/default_avatar.png');
+    }
 }
