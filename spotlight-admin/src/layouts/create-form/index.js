@@ -20,27 +20,33 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 // MUI Icon
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 
+// Zustand store
+import usePostStore from "store/usePostStore";
+
 function CreateForm() {
   const editorRef = useRef();
+  const createPost = usePostStore((state) => state.createPost);
+
   const [primaryImagePreview, setPrimaryImagePreview] = useState(null);
+  const [primaryImageFile, setPrimaryImageFile] = useState(null);
   const [contentType, setContentType] = useState("post"); // Default type
   const [videoUrl, setVideoUrl] = useState("");
 
   const handlePrimaryImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setPrimaryImageFile(file);
       const reader = new FileReader();
       reader.onload = () => setPrimaryImagePreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const title = e.target.title.value;
     const content = editorRef.current.editor.getData();
 
-    // Only collect categories if type = post
     const categories =
       contentType === "post"
         ? Array.from(e.target.elements["categories"])
@@ -48,8 +54,17 @@ function CreateForm() {
             .map((el) => el.value)
         : [];
 
-    console.log({ title, contentType, content, categories, videoUrl, primaryImagePreview });
-    // send data to API
+    try {
+      await createPost({ title, content, categories, primaryImage: primaryImageFile });
+      alert("Post created successfully!");
+      e.target.reset();
+      setPrimaryImagePreview(null);
+      setPrimaryImageFile(null);
+      editorRef.current.editor.setData("");
+    } catch (err) {
+      console.error("Failed to create post:", err);
+      alert("Error creating post. Check console.");
+    }
   };
 
   return (
@@ -98,7 +113,7 @@ function CreateForm() {
                     </select>
                   </MDBox>
 
-                  {/* Video URL (only if type = video) */}
+                  {/* Video URL (optional) */}
                   {contentType === "video" && (
                     <MDBox mb={2}>
                       <MDInput
@@ -122,7 +137,6 @@ function CreateForm() {
                       onReady={(editor) => {
                         editorRef.current = { editor };
 
-                        // Enable Base64 image upload
                         const fileRepository = editor.plugins.get("FileRepository");
                         fileRepository.createUploadAdapter = (loader) => {
                           return {
