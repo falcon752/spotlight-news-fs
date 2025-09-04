@@ -9,10 +9,20 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthorController extends Controller
 {
-    // List all authors
+    // List all authors with full avatar URLs
     public function index()
     {
-        $authors = Author::all();
+        $authors = Author::all()->map(function ($author) {
+            return [
+                'id' => $author->id,
+                'name' => $author->name,
+                'email' => $author->email,
+                'slug' => $author->slug,
+                'role' => $author->role,
+                'avatar_url' => $author->avatar_url,
+            ];
+        });
+
         return response()->json($authors);
     }
 
@@ -20,19 +30,24 @@ class AuthorController extends Controller
     public function show($id)
     {
         $author = Author::findOrFail($id);
-        return response()->json($author);
+        return response()->json([
+            'id' => $author->id,
+            'name' => $author->name,
+            'email' => $author->email,
+            'slug' => $author->slug,
+            'role' => $author->role,
+            'avatar_url' => $author->avatar_url,
+        ]);
     }
 
     // Fetch currently authenticated author
     public function me(Request $request)
     {
-        $author = $request->user(); // Authenticated author
-
+        $author = $request->user();
         if (!$author) {
             return response()->json(['message' => 'Unauthenticated'], 401);
         }
 
-        // Return author with avatar as full URL
         return response()->json([
             'author' => [
                 'id' => $author->id,
@@ -40,13 +55,12 @@ class AuthorController extends Controller
                 'email' => $author->email,
                 'slug' => $author->slug,
                 'role' => $author->role,
-                'avatar' => $author->avatar_url, // <-- full URL
-
+                'avatar' => $author->avatar_url,
             ],
         ]);
     }
 
-    // Create a new author
+    // Create new author
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -58,41 +72,25 @@ class AuthorController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path;
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
-
 
         $data['slug'] = Str::slug($data['name']);
         $data['password'] = Hash::make($data['password']);
 
         $author = Author::create($data);
 
-        return response()->json($author, 201);
-    }
-
-    public function updateAvatar(Request $request)
-    {
-        $request->validate([
-            'avatar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-        ]);
-
-        $author = $request->user();
-
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $author->avatar = $path;
-            $author->save();
-        }
-
         return response()->json([
-            'message' => 'Avatar updated successfully',
-            'avatar' => $author->avatar_url, // accessor from Author.php
-        ]);
+            'id' => $author->id,
+            'name' => $author->name,
+            'email' => $author->email,
+            'slug' => $author->slug,
+            'role' => $author->role,
+            'avatar_url' => $author->avatar_url,
+        ], 201);
     }
 
-
-    // Update an author
+    // Update author (role, name, avatar, etc.)
     public function update(Request $request, $id)
     {
         $author = Author::findOrFail($id);
@@ -106,10 +104,8 @@ class AuthorController extends Controller
         ]);
 
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $data['avatar'] = $path; // stored as avatars/filename.jpg
+            $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
         }
-
 
         if (isset($data['password'])) {
             $data['password'] = Hash::make($data['password']);
@@ -121,10 +117,36 @@ class AuthorController extends Controller
 
         $author->update($data);
 
-        return response()->json($author);
+        return response()->json([
+            'id' => $author->id,
+            'name' => $author->name,
+            'email' => $author->email,
+            'slug' => $author->slug,
+            'role' => $author->role,
+            'avatar_url' => $author->avatar_url,
+        ]);
     }
 
-    // Delete an author
+    // Update avatar only
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $author = $request->user();
+        if ($request->hasFile('avatar')) {
+            $author->avatar = $request->file('avatar')->store('avatars', 'public');
+            $author->save();
+        }
+
+        return response()->json([
+            'message' => 'Avatar updated successfully',
+            'avatar_url' => $author->avatar_url,
+        ]);
+    }
+
+    // Delete author
     public function destroy($id)
     {
         $author = Author::findOrFail($id);
