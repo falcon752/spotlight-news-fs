@@ -9,30 +9,31 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    // Fetch all posts
+    // Fetch all posts with their authors and categories
     public function index()
     {
-        $posts = Post::with(['author', 'category'])
+        $posts = Post::with(['author', 'categories'])
             ->orderBy('created_at', 'desc')
             ->get();
+
         return response()->json($posts);
     }
 
     // Fetch single post
     public function show($id)
     {
-        $post = Post::with(['author', 'category'])->findOrFail($id);
+        $post = Post::with(['author', 'categories'])->findOrFail($id);
         return response()->json($post);
     }
 
-    // Create a new post
+    // ✅ Create a new post (author is taken from auth)
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'desc' => 'required|string', // supports links and HTML content
-            'category_id' => 'required|exists:categories,id',
-            'author_id' => 'required|exists:authors,id',
+            'desc' => 'required|string',
+            'categories' => 'required|array',
+            'categories.*' => 'exists:categories,id',
             'img' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'date' => 'nullable|date',
         ]);
@@ -48,16 +49,18 @@ class PostController extends Controller
             'title' => $request->title,
             'slug' => $slug,
             'desc' => $request->desc,
-            'category_id' => $request->category_id,
-            'author_id' => $request->author_id,
+            'author_id' => auth()->id(), // ✅ logged-in user
             'img' => $imgPath,
             'date' => $request->date,
         ]);
 
+        $post->categories()->attach($request->categories);
+        $post->load(['categories', 'author']);
+
         return response()->json($post, 201);
     }
 
-    // Update an existing post
+    // ✅ Update an existing post (author is always the logged-in user)
     public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
@@ -65,21 +68,31 @@ class PostController extends Controller
         $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'desc' => 'sometimes|required|string',
-            'category_id' => 'sometimes|required|exists:categories,id',
-            'author_id' => 'sometimes|required|exists:authors,id',
+            'categories' => 'sometimes|array',
+            'categories.*' => 'exists:categories,id',
             'img' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
             'date' => 'nullable|date',
         ]);
 
         if ($request->hasFile('img')) {
-            // Delete old image if exists
             if ($post->img) {
                 Storage::disk('public')->delete($post->img);
             }
             $post->img = $request->file('img')->store('posts', 'public');
         }
 
-        $post->update($request->only(['title', 'desc', 'category_id', 'author_id', 'date']));
+        $post->update([
+            'title' => $request->title ?? $post->title,
+            'desc' => $request->desc ?? $post->desc,
+            'author_id' => auth()->id(), // ✅ always overwrite with logged-in user
+            'date' => $request->date ?? $post->date,
+        ]);
+
+        if ($request->has('categories')) {
+            $post->categories()->sync($request->categories);
+        }
+
+        $post->load(['categories', 'author']);
 
         return response()->json($post);
     }
@@ -93,7 +106,9 @@ class PostController extends Controller
             Storage::disk('public')->delete($post->img);
         }
 
+        $post->categories()->detach();
         $post->delete();
+
         return response()->json(['message' => 'Post deleted successfully']);
     }
 }

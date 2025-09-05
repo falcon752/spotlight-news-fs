@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('posts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->foreignId('author_id')->constrained()->onDelete('cascade');
             $table->string('slug')->unique();
             $table->string('img')->nullable();
@@ -22,6 +21,7 @@ return new class extends Migration
             $table->timestamp('date')->nullable();
             $table->timestamps();
         });
+
 
     }
 
