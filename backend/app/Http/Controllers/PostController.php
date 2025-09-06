@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    // Fetch all posts with their authors and categories
+    // Fetch all posts with authors & categories
     public function index()
     {
         $posts = Post::with(['author', 'categories'])
@@ -26,7 +26,7 @@ class PostController extends Controller
         return response()->json($post);
     }
 
-    // ✅ Create a new post (author is taken from auth)
+    // Create new post
     public function store(Request $request)
     {
         $request->validate([
@@ -49,7 +49,7 @@ class PostController extends Controller
             'title' => $request->title,
             'slug' => $slug,
             'desc' => $request->desc,
-            'author_id' => auth()->id(), // ✅ logged-in user
+            'author_id' => auth()->id(),
             'img' => $imgPath,
             'date' => $request->date,
         ]);
@@ -60,7 +60,7 @@ class PostController extends Controller
         return response()->json($post, 201);
     }
 
-    // ✅ Update an existing post (author is always the logged-in user)
+    // Update existing post
     public function update(Request $request, $id)
     {
         $post = Post::findOrFail($id);
@@ -84,7 +84,7 @@ class PostController extends Controller
         $post->update([
             'title' => $request->title ?? $post->title,
             'desc' => $request->desc ?? $post->desc,
-            'author_id' => auth()->id(), // ✅ always overwrite with logged-in user
+            'author_id' => auth()->id(),
             'date' => $request->date ?? $post->date,
         ]);
 

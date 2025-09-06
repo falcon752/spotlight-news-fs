@@ -232,7 +232,8 @@ export default function Tables() {
           description: <Description text={post.desc} />,
           image: post.img ? (
             <PostImage
-              src={`http://127.0.0.1:8000/storage/${post.img}`}
+                  src={post.img_url}
+
               alt={post.title}
             />
           ) : null,

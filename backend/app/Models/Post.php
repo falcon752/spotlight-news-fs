@@ -18,6 +18,8 @@ class Post extends Model
         'date',
     ];
 
+    protected $appends = ['img_url']; // ✅ full URL accessor
+
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'category_post');
@@ -26,5 +28,14 @@ class Post extends Model
     public function author()
     {
         return $this->belongsTo(Author::class, 'author_id');
+    }
+
+    // Full URL accessor for frontend
+    public function getImgUrlAttribute()
+    {
+        if ($this->img) {
+            return asset('storage/' . $this->img);
+        }
+        return null; // or default placeholder: asset('storage/posts/default.png');
     }
 }
