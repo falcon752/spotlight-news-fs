@@ -4,62 +4,66 @@ namespace App\Http\Controllers;
 
 use App\Models\Video;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class VideoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Get all videos
     public function index()
     {
-        //
+        return response()->json(Video::with('author')->latest()->get());
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    // Show single video
+    public function show($id)
     {
-        //
+        $video = Video::with('author')->findOrFail($id);
+        return response()->json($video);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Store a new video
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'desc' => 'nullable|string',
+            'video_url' => 'required|url',
+        ]);
+
+        $video = Video::create([
+            'author_id' => Auth::id(),
+            'title' => $request->title,
+            'desc' => $request->desc,
+            'video_url' => $request->video_url,
+            'type' => 'video',
+            'date' => now(),
+        ]);
+
+        return response()->json($video, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Video $video)
+    // Update video
+    public function update(Request $request, $id)
     {
-        //
+        $video = Video::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'desc' => 'nullable|string',
+            'video_url' => 'required|url',
+        ]);
+
+        $video->update($request->only('title', 'desc', 'video_url'));
+
+        return response()->json($video);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Video $video)
+    // Delete video
+    public function destroy($id)
     {
-        //
-    }
+        $video = Video::findOrFail($id);
+        $video->delete();
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Video $video)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Video $video)
-    {
-        //
+        return response()->json(['message' => 'Video deleted successfully.']);
     }
 }

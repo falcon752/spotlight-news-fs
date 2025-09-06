@@ -6,37 +6,24 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('videos', function (Blueprint $table) {
-            $table->id(); // Primary key
-
-            // Relationships
-            $table->foreignId('category_id')->constrained()->onDelete('cascade'); 
+            $table->id();
             $table->foreignId('author_id')->constrained()->onDelete('cascade');  
 
-            // Content fields
-            $table->string('title'); // e.g. Amazing Space Exploration
-            $table->string('slug')->unique(); // e.g. amazing-space-exploration
-            $table->text('desc')->nullable(); // video description
-            $table->string('video_url'); // YouTube/Vimeo/etc. URL
-            $table->string('thumbnail')->nullable(); // e.g. https://img.youtube...
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->text('desc')->nullable();
+            $table->string('video_url'); // YouTube link only
 
-            // Meta
-            $table->string('type')->default('video'); // default: video
-            $table->timestamp('date')->nullable(); // publish date
+            $table->string('type')->default('video');
+            $table->timestamp('date')->nullable();
 
-            $table->timestamps(); // created_at, updated_at
+            $table->timestamps();
         });
-
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('videos');

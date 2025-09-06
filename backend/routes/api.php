@@ -4,7 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\PostController; // <-- add this
+use App\Http\Controllers\PostController;
+use App\Http\Controllers\VideoController;
 
 // Public authentication
 Route::post('/register', [AuthController::class, 'register']);
@@ -30,4 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/posts', [PostController::class, 'store']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
+
+    // Videos CRUD
+    Route::get('/videos', [VideoController::class, 'index']);
+    Route::get('/videos/{id}', [VideoController::class, 'show']);
+    Route::post('/videos', [VideoController::class, 'store']);
+    Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
 });

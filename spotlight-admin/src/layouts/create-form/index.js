@@ -14,11 +14,13 @@ import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import usePostStore from "store/usePostStore";
 import { useCategoryStore } from "store/useCategoryStore";
 import useAuthStore from "store/authStore";
+import useVideoStore from "store/useVideoStore"; // ✅ new
 import Swal from "sweetalert2";
 
 function CreateForm() {
   const editorRef = useRef();
   const createPost = usePostStore((state) => state.createPost);
+  const createVideo = useVideoStore((state) => state.createVideo); // ✅ new
   const { categories, fetchCategories } = useCategoryStore();
   const { author } = useAuthStore();
 
@@ -29,7 +31,7 @@ function CreateForm() {
   const [videoUrl, setVideoUrl] = useState("");
   const [content, setContent] = useState("");
   const [selectedCategories, setSelectedCategories] = useState([]);
-  const [errors, setErrors] = useState({}); // 🔹 validation errors
+  const [errors, setErrors] = useState({});
 
   // Load draft
   useEffect(() => {
@@ -83,12 +85,13 @@ function CreateForm() {
     );
   };
 
-  // 🔹 Validate fields before submit
+  // 🔹 Validate fields
   const validate = () => {
     let temp = {};
     if (!title.trim()) temp.title = "Title is required.";
     if (!content.trim()) temp.content = "Content is required.";
-    if (!primaryImageFile) temp.primaryImage = "Primary image is required.";
+    if (contentType === "post" && !primaryImageFile)
+      temp.primaryImage = "Primary image is required.";
     if (contentType === "video" && !videoUrl.trim())
       temp.videoUrl = "Video URL is required.";
     if (contentType === "post" && selectedCategories.length === 0)
@@ -113,27 +116,35 @@ function CreateForm() {
       Swal.fire({
         icon: "warning",
         title: "Not Logged In",
-        text: "You must be logged in to create a post.",
+        text: "You must be logged in to create content.",
       });
       return;
     }
 
-    const payload = {
-      title,
-      content,
-      categories: contentType === "post" ? selectedCategories : [],
-      primaryImage: primaryImageFile,
-      authorId: author.id,
-      videoUrl: contentType === "video" ? videoUrl : null,
-    };
-
     try {
-      await createPost(payload);
+      if (contentType === "video") {
+        await createVideo({
+          title,
+          content,
+          videoUrl,
+          authorId: author.id,
+          thumbnail: primaryImageFile, // optional, front-end handles thumbnail
+        });
+      } else {
+        await createPost({
+          title,
+          content,
+          categories: selectedCategories,
+          primaryImage: primaryImageFile,
+          authorId: author.id,
+          videoUrl: null,
+        });
+      }
 
       Swal.fire({
         icon: "success",
         title: "Success!",
-        text: "Post created successfully.",
+        text: `${contentType === "video" ? "Video" : "Post"} created successfully.`,
         confirmButtonColor: "#3085d6",
       });
 
@@ -149,14 +160,11 @@ function CreateForm() {
       editorRef.current.editor.setData("");
       localStorage.removeItem("createFormDraft");
     } catch (err) {
-      console.error(
-        "❌ Failed to create post:",
-        err.response?.data || err.message
-      );
+      console.error("❌ Failed to create:", err.response?.data || err.message);
       Swal.fire({
         icon: "error",
         title: "Oops...",
-        text: "Error creating post. Your draft is saved.",
+        text: `Error creating ${contentType}. Your draft is saved.`,
       });
     }
   };
