@@ -33,9 +33,24 @@ const Editor = ({ image, name, email }) => (
 
 const Description = ({ text }) => {
   const trimmed =
-    text.replace(/<[^>]+>/g, "").split(" ").slice(0, 5).join(" ") +
-    (text.split(" ").length > 5 ? "..." : "");
+    text
+      .replace(/<[^>]+>/g, "")
+      .split(" ")
+      .slice(0, 5)
+      .join(" ") + (text.split(" ").length > 5 ? "..." : "");
   return <MDTypography variant="caption">{trimmed}</MDTypography>;
+};
+
+const TrimmedTitle = ({ text, wordLimit = 3 }) => {
+  const words = text.split(" ");
+  const trimmed =
+    words.slice(0, wordLimit).join(" ") +
+    (words.length > wordLimit ? "..." : "");
+  return (
+    <MDTypography variant="button" fontWeight="medium">
+      {trimmed}
+    </MDTypography>
+  );
 };
 
 const PostImage = ({ src, alt }) => (
@@ -107,7 +122,9 @@ export default function Tables() {
     return posts.filter((post) => {
       const author = post.author;
       const category = post.categories?.[0];
-      const combinedText = `${author?.name || ""} ${category?.name || ""} ${post.title} ${post.desc}`.toLowerCase();
+      const combinedText = `${author?.name || ""} ${category?.name || ""} ${
+        post.title
+      } ${post.desc}`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
   }, [posts, search]);
@@ -115,85 +132,168 @@ export default function Tables() {
   const filterVideos = useMemo(() => {
     return videos.filter((video) => {
       const author = video.author;
-      const combinedText = `${author?.name || ""} ${video.title} ${video.desc}`.toLowerCase();
+      const combinedText = `${author?.name || ""} ${video.title} ${
+        video.desc
+      }`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
   }, [videos, search]);
 
-  const postTableData = useMemo(() => ({
-    columns: [
-      { Header: "editor", accessor: "editor", width: "20%", align: "left" },
-      { Header: "category", accessor: "category", align: "center" },
-      { Header: "title", accessor: "title", align: "left" },
-      { Header: "description", accessor: "description", align: "left" },
-      { Header: "image", accessor: "image", align: "center" },
-      { Header: "date", accessor: "date", align: "center" },
-      { Header: "actions", accessor: "actions", align: "center" },
-    ],
-    rows: filterPosts.map((post) => {
-      const author = post.author;
-      const category = post.categories?.[0];
-      const color = categoryColors[category?.slug] || "dark";
+  const postTableData = useMemo(
+    () => ({
+      columns: [
+        { Header: "editor", accessor: "editor", width: "20%", align: "left" },
+        { Header: "category", accessor: "category", align: "center" },
+        { Header: "title", accessor: "title", align: "left" },
+        { Header: "description", accessor: "description", align: "left" },
+        { Header: "image", accessor: "image", align: "center" },
+        { Header: "date", accessor: "date", align: "center" },
+        { Header: "actions", accessor: "actions", align: "center" },
+      ],
+      rows: filterPosts.map((post) => {
+        const author = post.author;
+        const categories = post.categories || [];
 
-      return {
-        editor: <Editor image={author?.avatar} name={author?.name} email={`${author?.slug || author?.name}@example.com`} />,
-        category: <MDTypography variant="caption" fontWeight="medium" color={color}>{category?.name}</MDTypography>,
-        title: <MDTypography variant="button" fontWeight="medium">{post.title}</MDTypography>,
-        description: <Description text={post.desc} />,
-        image: post.img ? <PostImage src={`http://127.0.0.1:8000/storage/${post.img}`} alt={post.title} /> : null,
-        date: <MDTypography variant="caption">{post.date}</MDTypography>,
-        actions: (
-          <MDBox display="flex" justifyContent="center" gap={1}>
-            <MDButton size="small" variant="gradient" color="info">Edit</MDButton>
-            <MDButton size="small" variant="gradient" color="error">Delete</MDButton>
-          </MDBox>
-        ),
-      };
+        // Handle category display with multiple categories
+        let categoryCell;
+        if (categories.length === 1) {
+          const color = categoryColors[categories[0]?.slug] || "dark";
+          categoryCell = (
+            <MDTypography variant="caption" fontWeight="medium" color={color}>
+              {categories[0].name}
+            </MDTypography>
+          );
+        } else if (categories.length > 1) {
+          categoryCell = (
+            <MDBox
+              display="flex"
+              alignItems="center"
+              position="relative"
+              sx={{ cursor: "default" }}
+            >
+              <MDTypography
+                variant="caption"
+                fontWeight="medium"
+                color={categoryColors[categories[0]?.slug] || "dark"}
+              >
+                {categories[0].name}
+              </MDTypography>
+              <MDBox
+                component="span"
+                sx={{
+                  ml: 1,
+                  bgcolor: "info.main",
+                  color: "#fff",
+                  borderRadius: "50%",
+                  width: 18,
+                  height: 18,
+                  fontSize: "0.6rem",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                title={categories.map((cat) => cat.name).join(", ")} // hover shows all categories
+              >
+                {categories.length}
+              </MDBox>
+            </MDBox>
+          );
+        } else {
+          categoryCell = null;
+        }
+
+        return {
+          editor: (
+            <Editor
+              image={author?.avatar}
+              name={author?.name}
+              email={`${author?.slug || author?.name}@example.com`}
+            />
+          ),
+          category: categoryCell,
+          title: <TrimmedTitle text={post.title} />,
+          description: <Description text={post.desc} />,
+          image: post.img ? (
+            <PostImage
+              src={`http://127.0.0.1:8000/storage/${post.img}`}
+              alt={post.title}
+            />
+          ) : null,
+          date: <MDTypography variant="caption">{post.date}</MDTypography>,
+          actions: (
+            <MDBox display="flex" justifyContent="center" gap={1}>
+              <MDButton size="small" variant="gradient" color="info">
+                Edit
+              </MDButton>
+              <MDButton size="small" variant="gradient" color="error">
+                Delete
+              </MDButton>
+            </MDBox>
+          ),
+        };
+      }),
     }),
-  }), [filterPosts]);
+    [filterPosts]
+  );
 
-  const videoTableData = useMemo(() => ({
-    columns: [
-      { Header: "editor", accessor: "editor", width: "20%", align: "left" },
-      { Header: "title", accessor: "title", align: "left" },
-      { Header: "description", accessor: "description", align: "left" },
-      { Header: "thumbnail", accessor: "thumbnail", align: "center" },
-      { Header: "date", accessor: "date", align: "center" },
-      { Header: "actions", accessor: "actions", align: "center" },
-    ],
-    rows: filterVideos.map((video) => {
-      const author = video.author;
-      const videoId = video.videoUrl?.split("youtu.be/")[1]?.split("?")[0];
+  const videoTableData = useMemo(
+    () => ({
+      columns: [
+        { Header: "editor", accessor: "editor", width: "20%", align: "left" },
+        { Header: "title", accessor: "title", align: "left" },
+        { Header: "description", accessor: "description", align: "left" },
+        { Header: "thumbnail", accessor: "thumbnail", align: "center" },
+        { Header: "date", accessor: "date", align: "center" },
+        { Header: "actions", accessor: "actions", align: "center" },
+      ],
+      rows: filterVideos.map((video) => {
+        const author = video.author;
+        const videoId = video.videoUrl?.split("youtu.be/")[1]?.split("?")[0];
 
-      return {
-        editor: <Editor image={author?.avatar} name={author?.name} email={`${author?.slug || author?.name}@example.com`} />,
-        title: <MDTypography variant="button" fontWeight="medium">{video.title}</MDTypography>,
-        description: <Description text={video.desc} />,
-        thumbnail: video.thumbnail ? (
-          <VideoThumbnail
-            src={video.thumbnail}
-            alt={video.title}
-            onClick={() => {
-              MySwal.fire({
-                title: `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" style="color:#fff;text-decoration:underline;">${video.title}</a>`,
-                html: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
-                showCloseButton: true,
-                showConfirmButton: false,
-                customClass: { popup: "swal2-video-popup", title: "swal2-video-title" },
-              });
-            }}
-          />
-        ) : null,
-        date: <MDTypography variant="caption">{video.date}</MDTypography>,
-        actions: (
-          <MDBox display="flex" justifyContent="center" gap={1}>
-            <MDButton size="small" variant="gradient" color="info">Edit</MDButton>
-            <MDButton size="small" variant="gradient" color="error">Delete</MDButton>
-          </MDBox>
-        ),
-      };
+        return {
+          editor: (
+            <Editor
+              image={author?.avatar}
+              name={author?.name}
+              email={`${author?.slug || author?.name}@example.com`}
+            />
+          ),
+          title: <TrimmedTitle text={video.title} />,
+          description: <Description text={video.desc} />,
+          thumbnail: video.thumbnail ? (
+            <VideoThumbnail
+              src={video.thumbnail}
+              alt={video.title}
+              onClick={() => {
+                MySwal.fire({
+                  title: `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" style="color:#fff;text-decoration:underline;">${video.title}</a>`,
+                  html: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
+                  showCloseButton: true,
+                  showConfirmButton: false,
+                  customClass: {
+                    popup: "swal2-video-popup",
+                    title: "swal2-video-title",
+                  },
+                });
+              }}
+            />
+          ) : null,
+          date: <MDTypography variant="caption">{video.date}</MDTypography>,
+          actions: (
+            <MDBox display="flex" justifyContent="center" gap={1}>
+              <MDButton size="small" variant="gradient" color="info">
+                Edit
+              </MDButton>
+              <MDButton size="small" variant="gradient" color="error">
+                Delete
+              </MDButton>
+            </MDBox>
+          ),
+        };
+      }),
     }),
-  }), [filterVideos]);
+    [filterVideos]
+  );
 
   return (
     <DashboardLayout>
@@ -215,8 +315,16 @@ export default function Tables() {
                 display="flex"
                 alignItems="center"
               >
-                <MDTypography variant="h6" color="white">Post Table</MDTypography>
-                <MDBox sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+                <MDTypography variant="h6" color="white">
+                  Post Table
+                </MDTypography>
+                <MDBox
+                  sx={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                  }}
+                >
                   <MDInput
                     label="Search posts/videos"
                     value={search}
@@ -226,27 +334,56 @@ export default function Tables() {
                       width: 300,
                       input: { color: "#fff" },
                       label: { color: "#fff" },
-                      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
-                      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
                       "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
                     }}
                   />
                 </MDBox>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable table={postTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
+                <DataTable
+                  table={postTableData}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
               </MDBox>
             </Card>
           </Grid>
 
           <Grid item xs={12}>
             <Card>
-              <MDBox mx={2} mt={-3} py={3} px={2} variant="gradient" bgColor="success" borderRadius="lg" coloredShadow="success">
-                <MDTypography variant="h6" color="white">Video Table</MDTypography>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="success"
+                borderRadius="lg"
+                coloredShadow="success"
+              >
+                <MDTypography variant="h6" color="white">
+                  Video Table
+                </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable table={videoTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
+                <DataTable
+                  table={videoTableData}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
               </MDBox>
             </Card>
           </Grid>
