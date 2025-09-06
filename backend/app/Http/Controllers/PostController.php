@@ -60,6 +60,27 @@ class PostController extends Controller
         return response()->json($post, 201);
     }
 
+
+public function uploadImage(Request $request)
+{
+    $request->validate([
+        'upload' => 'required|image|mimes:jpg,jpeg,png,svg|max:2048',
+    ]);
+
+    $file = $request->file('upload');
+    $path = $file->store('posts/inline', 'public');
+
+    $url = asset('storage/' . $path);
+
+    // CKEditor expects JSON with 'url'
+    return response()->json([
+        'url' => $url,
+    ]);
+}
+
+
+
+
     // Update existing post
     public function update(Request $request, $id)
     {

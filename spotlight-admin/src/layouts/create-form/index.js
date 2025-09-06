@@ -14,13 +14,41 @@ import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import usePostStore from "store/usePostStore";
 import { useCategoryStore } from "store/useCategoryStore";
 import useAuthStore from "store/authStore";
-import useVideoStore from "store/useVideoStore"; // ✅ new
+import useVideoStore from "store/useVideoStore";
 import Swal from "sweetalert2";
+import axiosAdmin from "api/axiosAdmin";
+
+// ✅ Custom upload adapter using axiosAdmin
+class CustomUploadAdapter {
+  constructor(loader) {
+    this.loader = loader;
+  }
+
+  async upload() {
+    const file = await this.loader.file;
+    const formData = new FormData();
+    formData.append("upload", file);
+
+    try {
+      const { data } = await axiosAdmin.post("/uploads", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return { default: data.url }; // backend must return { url: "..." }
+    } catch (err) {
+      console.error("Upload adapter error:", err.response?.data || err.message);
+      throw err;
+    }
+  }
+
+  abort() {
+    // Optional: implement abort logic if needed
+  }
+}
 
 function CreateForm() {
   const editorRef = useRef();
   const createPost = usePostStore((state) => state.createPost);
-  const createVideo = useVideoStore((state) => state.createVideo); // ✅ new
+  const createVideo = useVideoStore((state) => state.createVideo);
   const { categories, fetchCategories } = useCategoryStore();
   const { author } = useAuthStore();
 
@@ -85,7 +113,7 @@ function CreateForm() {
     );
   };
 
-  // 🔹 Validate fields
+  // Validation
   const validate = () => {
     let temp = {};
     if (!title.trim()) temp.title = "Title is required.";
@@ -102,7 +130,6 @@ function CreateForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validate()) {
       Swal.fire({
         icon: "error",
@@ -128,7 +155,7 @@ function CreateForm() {
           content,
           videoUrl,
           authorId: author.id,
-          thumbnail: primaryImageFile, // optional, front-end handles thumbnail
+          thumbnail: primaryImageFile,
         });
       } else {
         await createPost({
@@ -157,7 +184,7 @@ function CreateForm() {
       setPrimaryImagePreview(null);
       setPrimaryImageFile(null);
       setErrors({});
-      editorRef.current.editor.setData("");
+      if (editorRef.current?.editor) editorRef.current.editor.setData("");
       localStorage.removeItem("createFormDraft");
     } catch (err) {
       console.error("❌ Failed to create:", err.response?.data || err.message);
@@ -254,10 +281,12 @@ function CreateForm() {
                       data={content}
                       onReady={(editor) => {
                         editorRef.current = { editor };
+                        editor.plugins
+                          .get("FileRepository")
+                          .createUploadAdapter = (loader) =>
+                          new CustomUploadAdapter(loader);
                       }}
-                      onChange={(event, editor) => {
-                        setContent(editor.getData());
-                      }}
+                      onChange={(event, editor) => setContent(editor.getData())}
                     />
                     {errors.content && (
                       <span style={{ color: "red", fontSize: "14px" }}>
@@ -354,7 +383,6 @@ function CreateForm() {
                           onChange={handlePrimaryImageChange}
                         />
                       </MDBox>
-
                       {errors.primaryImage && (
                         <span style={{ color: "red", fontSize: "14px" }}>
                           {errors.primaryImage}
