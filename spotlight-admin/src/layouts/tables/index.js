@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -10,12 +10,12 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
-import SortIcon from '@mui/icons-material/Sort'
 
-import { authors, categories, posts, videos } from "store/mockData";
+import usePostStore from "store/usePostStore";
+import useVideoStore from "store/useVideoStore";
 
 const MySwal = withReactContent(Swal);
 
@@ -32,7 +32,9 @@ const Editor = ({ image, name, email }) => (
 );
 
 const Description = ({ text }) => {
-  const trimmed = text.split(" ").slice(0, 5).join(" ") + (text.split(" ").length > 5 ? "..." : "");
+  const trimmed =
+    text.replace(/<[^>]+>/g, "").split(" ").slice(0, 5).join(" ") +
+    (text.split(" ").length > 5 ? "..." : "");
   return <MDTypography variant="caption">{trimmed}</MDTypography>;
 };
 
@@ -66,7 +68,7 @@ const VideoThumbnail = ({ src, alt, onClick }) => (
       sx={{
         transform: "translate(-50%, -50%)",
         color: "#fff",
-        bgcolor: "rgba(0, 0, 0, 1)",
+        bgcolor: "rgba(0, 0, 0, 0.7)",
         borderRadius: "50%",
         width: 24,
         height: 24,
@@ -89,27 +91,36 @@ const categoryColors = {
   entertainment: "secondary",
 };
 
-function Tables() {
+export default function Tables() {
   const [search, setSearch] = useState("");
 
+  const { posts, fetchPosts } = usePostStore();
+  const { videos, fetchVideos } = useVideoStore();
+
+  // Fetch data only once on mount
+  useEffect(() => {
+    fetchPosts();
+    fetchVideos();
+  }, [fetchPosts, fetchVideos]);
+
   const filterPosts = useMemo(() => {
-    return posts.filter(post => {
-      const author = authors.find(a => a.id === post.authorId);
-      const category = categories.find(c => c.id === post.categoryId);
-      const combinedText = `${author?.name} ${category?.name} ${post.title} ${post.desc}`.toLowerCase();
+    return posts.filter((post) => {
+      const author = post.author;
+      const category = post.categories?.[0];
+      const combinedText = `${author?.name || ""} ${category?.name || ""} ${post.title} ${post.desc}`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
-  }, [search]);
+  }, [posts, search]);
 
   const filterVideos = useMemo(() => {
-    return videos.filter(video => {
-      const author = authors.find(a => a.id === video.authorId);
-      const combinedText = `${author?.name} ${video.title} ${video.desc}`.toLowerCase();
+    return videos.filter((video) => {
+      const author = video.author;
+      const combinedText = `${author?.name || ""} ${video.title} ${video.desc}`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
-  }, [search]);
+  }, [videos, search]);
 
-  const postTableData = () => ({
+  const postTableData = useMemo(() => ({
     columns: [
       { Header: "editor", accessor: "editor", width: "20%", align: "left" },
       { Header: "category", accessor: "category", align: "center" },
@@ -119,17 +130,17 @@ function Tables() {
       { Header: "date", accessor: "date", align: "center" },
       { Header: "actions", accessor: "actions", align: "center" },
     ],
-    rows: filterPosts.map(post => {
-      const author = authors.find(a => a.id === post.authorId);
-      const category = categories.find(c => c.id === post.categoryId);
+    rows: filterPosts.map((post) => {
+      const author = post.author;
+      const category = post.categories?.[0];
       const color = categoryColors[category?.slug] || "dark";
 
       return {
-        editor: <Editor image={author.avatar} name={author.name} email={`${author.slug}@example.com`} />,
-        category: <MDTypography variant="caption" fontWeight="medium" color={color}>{category.name}</MDTypography>,
+        editor: <Editor image={author?.avatar} name={author?.name} email={`${author?.slug || author?.name}@example.com`} />,
+        category: <MDTypography variant="caption" fontWeight="medium" color={color}>{category?.name}</MDTypography>,
         title: <MDTypography variant="button" fontWeight="medium">{post.title}</MDTypography>,
         description: <Description text={post.desc} />,
-        image: <PostImage src={post.img} alt={post.title} />,
+        image: post.img ? <PostImage src={`http://127.0.0.1:8000/storage/${post.img}`} alt={post.title} /> : null,
         date: <MDTypography variant="caption">{post.date}</MDTypography>,
         actions: (
           <MDBox display="flex" justifyContent="center" gap={1}>
@@ -139,9 +150,9 @@ function Tables() {
         ),
       };
     }),
-  });
+  }), [filterPosts]);
 
-  const videoTableData = () => ({
+  const videoTableData = useMemo(() => ({
     columns: [
       { Header: "editor", accessor: "editor", width: "20%", align: "left" },
       { Header: "title", accessor: "title", align: "left" },
@@ -150,23 +161,29 @@ function Tables() {
       { Header: "date", accessor: "date", align: "center" },
       { Header: "actions", accessor: "actions", align: "center" },
     ],
-    rows: filterVideos.map(video => {
-      const author = authors.find(a => a.id === video.authorId);
+    rows: filterVideos.map((video) => {
+      const author = video.author;
+      const videoId = video.videoUrl?.split("youtu.be/")[1]?.split("?")[0];
 
       return {
-        editor: <Editor image={author.avatar} name={author.name} email={`${author.slug}@example.com`} />,
+        editor: <Editor image={author?.avatar} name={author?.name} email={`${author?.slug || author?.name}@example.com`} />,
         title: <MDTypography variant="button" fontWeight="medium">{video.title}</MDTypography>,
         description: <Description text={video.desc} />,
-        thumbnail: <VideoThumbnail src={video.thumbnail} alt={video.title} onClick={() => {
-          const videoId = video.videoUrl.split('youtu.be/')[1].split('?')[0];
-          MySwal.fire({
-            title: `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" style="color:#fff;text-decoration:underline;">${video.title}</a>`,
-            html: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
-            showCloseButton: true,
-            showConfirmButton: false,
-            customClass: { popup: 'swal2-video-popup', title: 'swal2-video-title' },
-          });
-        }} />,
+        thumbnail: video.thumbnail ? (
+          <VideoThumbnail
+            src={video.thumbnail}
+            alt={video.title}
+            onClick={() => {
+              MySwal.fire({
+                title: `<a href="https://www.youtube.com/watch?v=${videoId}" target="_blank" style="color:#fff;text-decoration:underline;">${video.title}</a>`,
+                html: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
+                showCloseButton: true,
+                showConfirmButton: false,
+                customClass: { popup: "swal2-video-popup", title: "swal2-video-title" },
+              });
+            }}
+          />
+        ) : null,
         date: <MDTypography variant="caption">{video.date}</MDTypography>,
         actions: (
           <MDBox display="flex" justifyContent="center" gap={1}>
@@ -176,10 +193,7 @@ function Tables() {
         ),
       };
     }),
-  });
-
-  const { columns: pColumns, rows: pRows } = postTableData();
-  const { columns: vColumns, rows: vRows } = videoTableData();
+  }), [filterVideos]);
 
   return (
     <DashboardLayout>
@@ -201,19 +215,8 @@ function Tables() {
                 display="flex"
                 alignItems="center"
               >
-                {/* Title on the left */}
-                <MDTypography variant="h6" color="white">
-                  Post Table
-                </MDTypography>
-
-                {/* Search bar centered */}
-                <MDBox
-                  sx={{
-                    position: "absolute",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                  }}
-                >
+                <MDTypography variant="h6" color="white">Post Table</MDTypography>
+                <MDBox sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
                   <MDInput
                     label="Search posts/videos"
                     value={search}
@@ -221,26 +224,18 @@ function Tables() {
                     size="small"
                     sx={{
                       width: 300,
-                      input: { color: "#fff" }, // text inside input
-                      label: { color: "#fff" }, // floating label
-                      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" }, // normal border
-                      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" }, // hover border
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" }, // focused border
-                      "& .MuiInputLabel-root.Mui-focused": { color: "#fff" }, // label when focused
+                      input: { color: "#fff" },
+                      label: { color: "#fff" },
+                      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+                      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+                      "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
                     }}
                   />
-
                 </MDBox>
               </MDBox>
-
               <MDBox pt={3}>
-                <DataTable
-                  table={{ columns: pColumns, rows: pRows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
+                <DataTable table={postTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
               </MDBox>
             </Card>
           </Grid>
@@ -251,13 +246,7 @@ function Tables() {
                 <MDTypography variant="h6" color="white">Video Table</MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable
-                  table={{ columns: vColumns, rows: vRows }}
-                  isSorted={false}
-                  entriesPerPage={false}
-                  showTotalEntries={false}
-                  noEndBorder
-                />
+                <DataTable table={videoTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
               </MDBox>
             </Card>
           </Grid>
@@ -267,5 +256,3 @@ function Tables() {
     </DashboardLayout>
   );
 }
-
-export default Tables;
