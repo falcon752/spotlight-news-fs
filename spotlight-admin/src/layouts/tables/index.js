@@ -37,14 +37,19 @@ const Editor = ({ image, name, email }) => (
 
 const Description = ({ text }) => {
   const trimmed =
-    text.replace(/<[^>]+>/g, "").split(" ").slice(0, 5).join(" ") +
-    (text.split(" ").length > 5 ? "..." : "");
+    text
+      .replace(/<[^>]+>/g, "")
+      .split(" ")
+      .slice(0, 5)
+      .join(" ") + (text.split(" ").length > 5 ? "..." : "");
   return <MDTypography variant="caption">{trimmed}</MDTypography>;
 };
 
 const TrimmedTitle = ({ text, wordLimit = 3 }) => {
   const words = text.split(" ");
-  const trimmed = words.slice(0, wordLimit).join(" ") + (words.length > wordLimit ? "..." : "");
+  const trimmed =
+    words.slice(0, wordLimit).join(" ") +
+    (words.length > wordLimit ? "..." : "");
   return (
     <MDTypography variant="button" fontWeight="medium">
       {trimmed}
@@ -69,7 +74,12 @@ const VideoThumbnail = ({ src, alt, onClick }) => (
     sx={{ cursor: "pointer", borderRadius: "4px", overflow: "hidden" }}
     onClick={onClick}
   >
-    <MDBox component="img" src={src} alt={alt} sx={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    <MDBox
+      component="img"
+      src={src}
+      alt={alt}
+      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+    />
     <MDBox
       position="absolute"
       top="50%"
@@ -128,7 +138,9 @@ export default function Tables() {
     return posts.filter((post) => {
       const author = post.author;
       const category = post.categories?.[0];
-      const combinedText = `${author?.name || ""} ${category?.name || ""} ${post.title} ${post.desc}`.toLowerCase();
+      const combinedText = `${author?.name || ""} ${category?.name || ""} ${
+        post.title
+      } ${post.desc}`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
   }, [posts, search]);
@@ -136,7 +148,9 @@ export default function Tables() {
   const filterVideos = useMemo(() => {
     return videos.filter((video) => {
       const author = video.author;
-      const combinedText = `${author?.name || ""} ${video.title} ${video.desc}`.toLowerCase();
+      const combinedText = `${author?.name || ""} ${video.title} ${
+        video.desc
+      }`.toLowerCase();
       return combinedText.includes(search.toLowerCase());
     });
   }, [videos, search]);
@@ -206,16 +220,38 @@ export default function Tables() {
         }
 
         return {
-          editor: <Editor image={author?.avatar_url || ""} name={author?.name} email={author?.email || ""} />,
+          editor: (
+            <Editor
+              image={author?.avatar_url || ""}
+              name={author?.name}
+              email={author?.email || ""}
+            />
+          ),
           category: categoryCell,
           title: <TrimmedTitle text={post.title} />,
           description: <Description text={post.desc} />,
-          image: post.img ? <PostImage src={`http://127.0.0.1:8000/storage/${post.img}`} alt={post.title} /> : null,
-          date: <MDTypography variant="caption">{post.date}</MDTypography>,
+          image: post.img ? (
+            <PostImage
+              src={`http://127.0.0.1:8000/storage/${post.img}`}
+              alt={post.title}
+            />
+          ) : null,
+          date: (
+            <MDTypography variant="caption">
+              {post.created_at
+                ? new Date(post.created_at).toLocaleString()
+                : "-"}
+            </MDTypography>
+          ),
+
           actions: (
             <MDBox display="flex" justifyContent="center" gap={1}>
-              <MDButton size="small" variant="gradient" color="info">Edit</MDButton>
-              <MDButton size="small" variant="gradient" color="error">Delete</MDButton>
+              <MDButton size="small" variant="gradient" color="info">
+                Edit
+              </MDButton>
+              <MDButton size="small" variant="gradient" color="error">
+                Delete
+              </MDButton>
             </MDBox>
           ),
         };
@@ -238,20 +274,34 @@ export default function Tables() {
         const author = video.author;
 
         let videoId = "";
-        if (video.videoUrl) {
-          const url = new URL(video.videoUrl);
-          videoId = url.hostname.includes("youtu.be")
-            ? url.pathname.slice(1)
-            : url.searchParams.get("v") || "";
+        if (video.video_url) {
+          try {
+            const url = new URL(video.video_url);
+            videoId = url.hostname.includes("youtu.be")
+              ? url.pathname.slice(1)
+              : url.searchParams.get("v") || "";
+          } catch (error) {
+            videoId = "";
+          }
         }
 
+        const thumbnailUrl = videoId
+          ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`
+          : null;
+
         return {
-          editor: <Editor image={author?.avatar_url || ""} name={author?.name} email={author?.email || ""} />,
+          editor: (
+            <Editor
+              image={author?.avatar_url || ""}
+              name={author?.name}
+              email={author?.email || ""}
+            />
+          ),
           title: <TrimmedTitle text={video.title} />,
           description: <Description text={video.desc} />,
-          thumbnail: video.thumbnail ? (
+          thumbnail: thumbnailUrl ? (
             <VideoThumbnail
-              src={video.thumbnail}
+              src={thumbnailUrl}
               alt={video.title}
               onClick={() => {
                 MySwal.fire({
@@ -259,7 +309,10 @@ export default function Tables() {
                   html: `<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>`,
                   showCloseButton: true,
                   showConfirmButton: false,
-                  customClass: { popup: "swal2-video-popup", title: "swal2-video-title" },
+                  customClass: {
+                    popup: "swal2-video-popup",
+                    title: "swal2-video-title",
+                  },
                 });
               }}
             />
@@ -267,8 +320,12 @@ export default function Tables() {
           date: <MDTypography variant="caption">{video.date}</MDTypography>,
           actions: (
             <MDBox display="flex" justifyContent="center" gap={1}>
-              <MDButton size="small" variant="gradient" color="info">Edit</MDButton>
-              <MDButton size="small" variant="gradient" color="error">Delete</MDButton>
+              <MDButton size="small" variant="gradient" color="info">
+                Edit
+              </MDButton>
+              <MDButton size="small" variant="gradient" color="error">
+                Delete
+              </MDButton>
             </MDBox>
           ),
         };
@@ -284,9 +341,29 @@ export default function Tables() {
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Card>
-              <MDBox mx={2} mt={-3} py={3} px={2} variant="gradient" bgColor="info" borderRadius="lg" coloredShadow="info" position="relative" display="flex" alignItems="center">
-                <MDTypography variant="h6" color="white">Post Table</MDTypography>
-                <MDBox sx={{ position: "absolute", left: "50%", transform: "translateX(-50%)" }}>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+                position="relative"
+                display="flex"
+                alignItems="center"
+              >
+                <MDTypography variant="h6" color="white">
+                  Post Table
+                </MDTypography>
+                <MDBox
+                  sx={{
+                    position: "absolute",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                  }}
+                >
                   <MDInput
                     label="Search posts/videos"
                     value={search}
@@ -296,35 +373,72 @@ export default function Tables() {
                       width: 300,
                       input: { color: "#fff" },
                       label: { color: "#fff" },
-                      "& .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
-                      "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
-                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": { borderColor: "#fff" },
+                      "& .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "&:hover .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
+                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                        borderColor: "#fff",
+                      },
                       "& .MuiInputLabel-root.Mui-focused": { color: "#fff" },
                     }}
                   />
                 </MDBox>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable table={postTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
+                <DataTable
+                  table={postTableData}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
               </MDBox>
             </Card>
           </Grid>
 
           <Grid item xs={12}>
             <Card>
-              <MDBox mx={2} mt={-3} py={3} px={2} variant="gradient" bgColor="success" borderRadius="lg" coloredShadow="success">
-                <MDTypography variant="h6" color="white">Video Table</MDTypography>
+              <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="success"
+                borderRadius="lg"
+                coloredShadow="success"
+              >
+                <MDTypography variant="h6" color="white">
+                  Video Table
+                </MDTypography>
               </MDBox>
               <MDBox pt={3}>
-                <DataTable table={videoTableData} isSorted={false} entriesPerPage={false} showTotalEntries={false} noEndBorder />
+                <DataTable
+                  table={videoTableData}
+                  isSorted={false}
+                  entriesPerPage={false}
+                  showTotalEntries={false}
+                  noEndBorder
+                />
               </MDBox>
             </Card>
           </Grid>
         </Grid>
       </MDBox>
 
-      <Menu anchorEl={anchorEl} open={open} onClose={handleClose} anchorOrigin={{ vertical: "bottom", horizontal: "left" }} transformOrigin={{ vertical: "top", horizontal: "left" }}>
-        {currentCategories.map((cat) => <MenuItem key={cat.id}>{cat.name}</MenuItem>)}
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        transformOrigin={{ vertical: "top", horizontal: "left" }}
+      >
+        {currentCategories.map((cat) => (
+          <MenuItem key={cat.id}>{cat.name}</MenuItem>
+        ))}
       </Menu>
 
       <Footer />
