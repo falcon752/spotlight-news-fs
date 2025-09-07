@@ -66,4 +66,13 @@ class VideoController extends Controller
 
         return response()->json(['message' => 'Video deleted successfully.']);
     }
+
+    // Delete ALL videos
+    public function clearAll()
+    {
+        Video::truncate(); // ⚡ completely empties the table
+        return response()->json(['message' => 'All videos deleted successfully.']);
+    }
+
+
 }

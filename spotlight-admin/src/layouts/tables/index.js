@@ -112,8 +112,8 @@ const categoryColors = {
 
 export default function Tables() {
   const [search, setSearch] = useState("");
-  const { posts, fetchPosts } = usePostStore();
-  const { videos, fetchVideos } = useVideoStore();
+  const { posts, fetchPosts, deletePost, clearPosts } = usePostStore();
+  const { videos, fetchVideos, deleteVideo, clearVideos } = useVideoStore();
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentCategories, setCurrentCategories] = useState([]);
@@ -154,6 +154,108 @@ export default function Tables() {
       return combinedText.includes(search.toLowerCase());
     });
   }, [videos, search]);
+
+  // 🔹 Delete single post
+  const handleDeletePost = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deletePost(id);
+        MySwal.fire("Deleted!", "The post has been deleted.", "success");
+      } catch (err) {
+        MySwal.fire("Error!", err.message || "Failed to delete post.", "error");
+      }
+    }
+  };
+
+  // 🔹 Delete single video
+  const handleDeleteVideo = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteVideo(id);
+        MySwal.fire("Deleted!", "The video has been deleted.", "success");
+      } catch (err) {
+        MySwal.fire("Error!", err.message || "Failed to delete video.", "error");
+      }
+    }
+  };
+
+  // 🔹 Clear all posts
+  const handleClearPosts = async () => {
+    if (posts.length === 0) {
+      MySwal.fire("Nothing to clear", "No posts found in the table.", "info");
+      return;
+    }
+
+    const result = await MySwal.fire({
+      title: "Delete ALL posts?",
+      text: "This will permanently remove all posts. This cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete all!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await clearPosts();
+        MySwal.fire("Cleared!", "All posts have been deleted.", "success");
+      } catch (err) {
+        MySwal.fire("Error!", err.message || "Failed to clear posts.", "error");
+      }
+    }
+  };
+
+  // 🔹 Clear all videos
+  const handleClearVideos = async () => {
+    if (videos.length === 0) {
+      MySwal.fire("Nothing to clear", "No videos found in the table.", "info");
+      return;
+    }
+
+    const result = await MySwal.fire({
+      title: "Delete ALL videos?",
+      text: "This will permanently remove all videos. This cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete all!",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await clearVideos();
+        MySwal.fire("Cleared!", "All videos have been deleted.", "success");
+      } catch (err) {
+        MySwal.fire("Error!", err.message || "Failed to clear videos.", "error");
+      }
+    }
+  };
 
   const postTableData = useMemo(
     () => ({
@@ -231,11 +333,7 @@ export default function Tables() {
           title: <TrimmedTitle text={post.title} />,
           description: <Description text={post.desc} />,
           image: post.img ? (
-            <PostImage
-                  src={post.img_url}
-
-              alt={post.title}
-            />
+            <PostImage src={post.img_url} alt={post.title} />
           ) : null,
           date: (
             <MDTypography variant="caption">
@@ -244,13 +342,17 @@ export default function Tables() {
                 : "-"}
             </MDTypography>
           ),
-
           actions: (
             <MDBox display="flex" justifyContent="center" gap={1}>
               <MDButton size="small" variant="gradient" color="info">
                 Edit
               </MDButton>
-              <MDButton size="small" variant="gradient" color="error">
+              <MDButton
+                size="small"
+                variant="gradient"
+                color="error"
+                onClick={() => handleDeletePost(post.id)}
+              >
                 Delete
               </MDButton>
             </MDBox>
@@ -324,7 +426,12 @@ export default function Tables() {
               <MDButton size="small" variant="gradient" color="info">
                 Edit
               </MDButton>
-              <MDButton size="small" variant="gradient" color="error">
+              <MDButton
+                size="small"
+                variant="gradient"
+                color="error"
+                onClick={() => handleDeleteVideo(video.id)}
+              >
                 Delete
               </MDButton>
             </MDBox>
@@ -340,6 +447,7 @@ export default function Tables() {
       <DashboardNavbar />
       <MDBox pt={6} pb={3}>
         <Grid container spacing={6}>
+          {/* Post Table */}
           <Grid item xs={12}>
             <Card>
               <MDBox
@@ -397,9 +505,15 @@ export default function Tables() {
                   noEndBorder
                 />
               </MDBox>
+              <MDBox p={2} display="flex" justifyContent="flex-end">
+                <MDButton variant="gradient" color="error" onClick={handleClearPosts}>
+                  Clear Table
+                </MDButton>
+              </MDBox>
             </Card>
           </Grid>
 
+          {/* Video Table */}
           <Grid item xs={12}>
             <Card>
               <MDBox
@@ -424,6 +538,11 @@ export default function Tables() {
                   showTotalEntries={false}
                   noEndBorder
                 />
+              </MDBox>
+              <MDBox p={2} display="flex" justifyContent="flex-end">
+                <MDButton variant="gradient" color="error" onClick={handleClearVideos}>
+                  Clear Table
+                </MDButton>
               </MDBox>
             </Card>
           </Grid>

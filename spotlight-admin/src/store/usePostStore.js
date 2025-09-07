@@ -18,7 +18,13 @@ const usePostStore = create((set, get) => ({
   },
 
   // Create a new post
-  createPost: async ({ title, content, categories = [], primaryImage, date }) => {
+  createPost: async ({
+    title,
+    content,
+    categories = [],
+    primaryImage,
+    date,
+  }) => {
     set({ loading: true, error: null });
     try {
       const formData = new FormData();
@@ -38,13 +44,19 @@ const usePostStore = create((set, get) => ({
       set({ posts: [...get().posts, data], loading: false });
       return data;
     } catch (err) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+      set({
+        error: err.response?.data?.message || err.message,
+        loading: false,
+      });
       throw err;
     }
   },
 
   // Update an existing post
-  updatePost: async (id, { title, content, categories = [], primaryImage, date }) => {
+  updatePost: async (
+    id,
+    { title, content, categories = [], primaryImage, date }
+  ) => {
     set({ loading: true, error: null });
     try {
       const formData = new FormData();
@@ -59,9 +71,13 @@ const usePostStore = create((set, get) => ({
 
       if (primaryImage) formData.append("img", primaryImage);
 
-      const { data } = await axiosAdmin.post(`/posts/${id}?_method=PUT`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await axiosAdmin.post(
+        `/posts/${id}?_method=PUT`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       set({
         posts: get().posts.map((post) => (post.id === id ? data : post)),
@@ -69,7 +85,10 @@ const usePostStore = create((set, get) => ({
       });
       return data;
     } catch (err) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+      set({
+        error: err.response?.data?.message || err.message,
+        loading: false,
+      });
       throw err;
     }
   },
@@ -79,9 +98,29 @@ const usePostStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await axiosAdmin.delete(`/posts/${id}`);
-      set({ posts: get().posts.filter((post) => post.id !== id), loading: false });
+      set({
+        posts: get().posts.filter((post) => post.id !== id),
+        loading: false,
+      });
     } catch (err) {
-      set({ error: err.response?.data?.message || err.message, loading: false });
+      set({
+        error: err.response?.data?.message || err.message,
+        loading: false,
+      });
+      throw err;
+    }
+  },
+
+  clearPosts: async () => {
+    set({ loading: true, error: null });
+    try {
+      await axiosAdmin.delete("/posts/clear"); // 🔹 backend endpoint
+      set({ posts: [], loading: false });
+    } catch (err) {
+      set({
+        error: err.response?.data?.message || err.message,
+        loading: false,
+      });
       throw err;
     }
   },

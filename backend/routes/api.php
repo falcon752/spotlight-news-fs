@@ -27,15 +27,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Posts CRUD
     Route::get('/posts', [PostController::class, 'index']);
-    Route::get('/posts/{id}', [PostController::class, 'show']);
     Route::post('/posts', [PostController::class, 'store']);
     Route::post('/uploads', [PostController::class, 'uploadImage']);
+    Route::delete('/posts/clear', [PostController::class, 'clearAll']);
+    Route::get('/posts/{id}', [PostController::class, 'show']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
-    // Videos CRUD
+
     Route::get('/videos', [VideoController::class, 'index']);
-    Route::get('/videos/{id}', [VideoController::class, 'show']);
     Route::post('/videos', [VideoController::class, 'store']);
+    Route::delete('/videos/clear', [VideoController::class, 'clearAll']);
+    Route::get('/videos/{id}', [VideoController::class, 'show']);
     Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
+
+
 });

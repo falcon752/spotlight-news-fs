@@ -1,11 +1,11 @@
 import { create } from "zustand";
-import axiosAdmin from "../api/axiosAdmin"; // ✅ use your axios instance
+import axiosAdmin from "../api/axiosAdmin"; // ✅ your axios instance
 
 const useVideoStore = create((set) => ({
   videos: [],
 
   fetchVideos: async () => {
-    const res = await axiosAdmin.get("/videos"); // uses backend baseURL
+    const res = await axiosAdmin.get("/videos");
     set({ videos: res.data });
   },
 
@@ -16,7 +16,6 @@ const useVideoStore = create((set) => ({
     formData.append("video_url", payload.videoUrl);
     formData.append("author_id", payload.authorId);
 
-    // frontend will generate thumbnail; backend doesn't need it
     if (payload.thumbnail) {
       formData.append("thumbnail", payload.thumbnail);
     }
@@ -24,6 +23,20 @@ const useVideoStore = create((set) => ({
     await axiosAdmin.post("/videos", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+  },
+
+  // 🔹 Delete a single video
+  deleteVideo: async (id) => {
+    await axiosAdmin.delete(`/videos/${id}`);
+    set((state) => ({
+      videos: state.videos.filter((video) => video.id !== id),
+    }));
+  },
+
+  // 🔹 Clear all videos
+  clearVideos: async () => {
+    await axiosAdmin.delete("/videos/clear");
+    set({ videos: [] });
   },
 }));
 

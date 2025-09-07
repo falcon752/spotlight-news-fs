@@ -132,4 +132,18 @@ public function uploadImage(Request $request)
 
         return response()->json(['message' => 'Post deleted successfully']);
     }
+
+
+    public function clearAll()
+    {
+        foreach (Post::all() as $post) {
+            if ($post->img) {
+                \Storage::disk('public')->delete($post->img);
+            }
+            $post->delete(); // ⚡ This will also cascade delete pivot rows
+        }
+
+        return response()->json(['message' => 'All posts deleted successfully']);
+    }
+
 }
