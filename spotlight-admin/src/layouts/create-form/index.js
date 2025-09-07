@@ -45,6 +45,16 @@ class CustomUploadAdapter {
   }
 }
 
+
+window.addEventListener("error", (event) => {
+  if (event.error instanceof CKEditorError) {
+    if (event.error.is && event.error.is("CKEditorError", "view-position-before-root")) {
+      event.preventDefault(); // ✅ stop it from crashing
+      return false; // ✅ hide it
+    }
+  }
+});
+
 function CreateForm() {
   const editorRef = useRef();
   const createPost = usePostStore((state) => state.createPost);
