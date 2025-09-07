@@ -48,9 +48,9 @@ class VideoController extends Controller
         $video = Video::findOrFail($id);
 
         $request->validate([
-            'title' => 'required|string|max:255',
-            'desc' => 'nullable|string',
-            'video_url' => 'required|url',
+            'title'     => 'sometimes|required|string|max:255',
+            'desc'      => 'nullable|string',
+            'video_url' => 'sometimes|required|url',
         ]);
 
         $video->update($request->only('title', 'desc', 'video_url'));

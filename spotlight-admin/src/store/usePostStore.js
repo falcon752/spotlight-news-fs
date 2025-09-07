@@ -5,12 +5,13 @@ const usePostStore = create((set, get) => ({
   posts: [],
   loading: false,
   error: null,
+  editingPost: null, // ✅ for edit mode
 
   // Fetch all posts with categories
   fetchPosts: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosAdmin.get("/posts"); // backend returns posts with categories
+      const { data } = await axiosAdmin.get("/posts");
       set({ posts: data, loading: false });
     } catch (err) {
       set({ error: err.message, loading: false });
@@ -18,13 +19,7 @@ const usePostStore = create((set, get) => ({
   },
 
   // Create a new post
-  createPost: async ({
-    title,
-    content,
-    categories = [],
-    primaryImage,
-    date,
-  }) => {
+  createPost: async ({ title, content, categories = [], primaryImage, date }) => {
     set({ loading: true, error: null });
     try {
       const formData = new FormData();
@@ -32,9 +27,7 @@ const usePostStore = create((set, get) => ({
       formData.append("desc", content);
       if (date) formData.append("date", date);
 
-      // Append categories as array
       categories.forEach((catId) => formData.append("categories[]", catId));
-
       if (primaryImage) formData.append("img", primaryImage);
 
       const { data } = await axiosAdmin.post("/posts", formData, {
@@ -44,19 +37,13 @@ const usePostStore = create((set, get) => ({
       set({ posts: [...get().posts, data], loading: false });
       return data;
     } catch (err) {
-      set({
-        error: err.response?.data?.message || err.message,
-        loading: false,
-      });
+      set({ error: err.response?.data?.message || err.message, loading: false });
       throw err;
     }
   },
 
   // Update an existing post
-  updatePost: async (
-    id,
-    { title, content, categories = [], primaryImage, date }
-  ) => {
+  updatePost: async (id, { title, content, categories = [], primaryImage, date }) => {
     set({ loading: true, error: null });
     try {
       const formData = new FormData();
@@ -64,36 +51,28 @@ const usePostStore = create((set, get) => ({
       if (content) formData.append("desc", content);
       if (date) formData.append("date", date);
 
-      // Append categories if provided
       if (categories.length) {
         categories.forEach((catId) => formData.append("categories[]", catId));
       }
-
       if (primaryImage) formData.append("img", primaryImage);
 
-      const { data } = await axiosAdmin.post(
-        `/posts/${id}?_method=PUT`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
+      const { data } = await axiosAdmin.post(`/posts/${id}?_method=PUT`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       set({
         posts: get().posts.map((post) => (post.id === id ? data : post)),
+        editingPost: null,
         loading: false,
       });
       return data;
     } catch (err) {
-      set({
-        error: err.response?.data?.message || err.message,
-        loading: false,
-      });
+      set({ error: err.response?.data?.message || err.message, loading: false });
       throw err;
     }
   },
 
-  // Delete a post
+  // Delete a single post
   deletePost: async (id) => {
     set({ loading: true, error: null });
     try {
@@ -103,27 +82,26 @@ const usePostStore = create((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({
-        error: err.response?.data?.message || err.message,
-        loading: false,
-      });
+      set({ error: err.response?.data?.message || err.message, loading: false });
       throw err;
     }
   },
 
+  // Clear all posts
   clearPosts: async () => {
     set({ loading: true, error: null });
     try {
-      await axiosAdmin.delete("/posts/clear"); // 🔹 backend endpoint
+      await axiosAdmin.delete("/posts/clear");
       set({ posts: [], loading: false });
     } catch (err) {
-      set({
-        error: err.response?.data?.message || err.message,
-        loading: false,
-      });
+      set({ error: err.response?.data?.message || err.message, loading: false });
       throw err;
     }
   },
+
+  // 🔹 Edit mode handlers
+  setEditingPost: (post) => set({ editingPost: post }),
+  clearEditingPost: () => set({ editingPost: null }),
 }));
 
 export default usePostStore;

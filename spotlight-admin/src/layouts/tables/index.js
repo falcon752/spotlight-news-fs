@@ -16,6 +16,7 @@ import withReactContent from "sweetalert2-react-content";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Tooltip from "@mui/material/Tooltip";
+import { useNavigate } from "react-router-dom";
 
 import usePostStore from "store/usePostStore";
 import useVideoStore from "store/useVideoStore";
@@ -118,6 +119,7 @@ export default function Tables() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentCategories, setCurrentCategories] = useState([]);
   const open = Boolean(anchorEl);
+  const navigate = useNavigate();
 
   const handleCategoryClick = (event, categories) => {
     setAnchorEl(event.currentTarget);
@@ -196,7 +198,11 @@ export default function Tables() {
         await deleteVideo(id);
         MySwal.fire("Deleted!", "The video has been deleted.", "success");
       } catch (err) {
-        MySwal.fire("Error!", err.message || "Failed to delete video.", "error");
+        MySwal.fire(
+          "Error!",
+          err.message || "Failed to delete video.",
+          "error"
+        );
       }
     }
   };
@@ -252,7 +258,11 @@ export default function Tables() {
         await clearVideos();
         MySwal.fire("Cleared!", "All videos have been deleted.", "success");
       } catch (err) {
-        MySwal.fire("Error!", err.message || "Failed to clear videos.", "error");
+        MySwal.fire(
+          "Error!",
+          err.message || "Failed to clear videos.",
+          "error"
+        );
       }
     }
   };
@@ -344,9 +354,17 @@ export default function Tables() {
           ),
           actions: (
             <MDBox display="flex" justifyContent="center" gap={1}>
-              <MDButton size="small" variant="gradient" color="info">
+              <MDButton
+                size="small"
+                variant="gradient"
+                color="info"
+                onClick={() =>
+                  navigate("/create-form", { state: { type: "post", data: post } })
+                }
+              >
                 Edit
               </MDButton>
+
               <MDButton
                 size="small"
                 variant="gradient"
@@ -423,9 +441,17 @@ export default function Tables() {
           date: <MDTypography variant="caption">{video.date}</MDTypography>,
           actions: (
             <MDBox display="flex" justifyContent="center" gap={1}>
-              <MDButton size="small" variant="gradient" color="info">
+              <MDButton
+                size="small"
+                variant="gradient"
+                color="info"
+                onClick={() =>
+                  navigate("/create-form", { state: { type: "video", data: video } })
+                }
+              >
                 Edit
               </MDButton>
+
               <MDButton
                 size="small"
                 variant="gradient"
@@ -506,7 +532,11 @@ export default function Tables() {
                 />
               </MDBox>
               <MDBox p={2} display="flex" justifyContent="flex-end">
-                <MDButton variant="gradient" color="error" onClick={handleClearPosts}>
+                <MDButton
+                  variant="gradient"
+                  color="error"
+                  onClick={handleClearPosts}
+                >
                   Clear Table
                 </MDButton>
               </MDBox>
@@ -540,7 +570,11 @@ export default function Tables() {
                 />
               </MDBox>
               <MDBox p={2} display="flex" justifyContent="flex-end">
-                <MDButton variant="gradient" color="error" onClick={handleClearVideos}>
+                <MDButton
+                  variant="gradient"
+                  color="error"
+                  onClick={handleClearVideos}
+                >
                   Clear Table
                 </MDButton>
               </MDBox>

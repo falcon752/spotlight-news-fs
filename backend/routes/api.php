@@ -35,11 +35,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
 
+    // Videos CRUD
     Route::get('/videos', [VideoController::class, 'index']);
     Route::post('/videos', [VideoController::class, 'store']);
     Route::delete('/videos/clear', [VideoController::class, 'clearAll']);
     Route::get('/videos/{id}', [VideoController::class, 'show']);
+    Route::put('/videos/{id}', [VideoController::class, 'update']); // ✅ Added update
     Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
+
 
 
 });

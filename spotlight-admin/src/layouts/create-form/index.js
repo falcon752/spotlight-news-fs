@@ -17,6 +17,7 @@ import useAuthStore from "store/authStore";
 import useVideoStore from "store/useVideoStore";
 import Swal from "sweetalert2";
 import axiosAdmin from "api/axiosAdmin";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // ✅ Custom upload adapter using axiosAdmin
 class CustomUploadAdapter {
@@ -45,20 +46,17 @@ class CustomUploadAdapter {
   }
 }
 
-
-window.addEventListener("error", (event) => {
-  if (event.error instanceof CKEditorError) {
-    if (event.error.is && event.error.is("CKEditorError", "view-position-before-root")) {
-      event.preventDefault(); // ✅ stop it from crashing
-      return false; // ✅ hide it
-    }
-  }
-});
-
 function CreateForm() {
+  const location = useLocation(); // ✅ added
+  const navigate = useNavigate(); // ✅ added
+
   const editorRef = useRef();
+
   const createPost = usePostStore((state) => state.createPost);
+  const updatePost = usePostStore((state) => state.updatePost); // ✅ added
   const createVideo = useVideoStore((state) => state.createVideo);
+  const updateVideo = useVideoStore((state) => state.updateVideo); // ✅ added
+
   const { categories, fetchCategories } = useCategoryStore();
   const { author } = useAuthStore();
 
@@ -71,33 +69,51 @@ function CreateForm() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [errors, setErrors] = useState({});
 
-  // Load draft
+  const editingItem = location.state?.data || null; // ✅ use location safely
+  const editingType = location.state?.type || null;
+  const isEditing = Boolean(editingItem);
+
+  // Load draft or editing data
   useEffect(() => {
     fetchCategories();
-    const draft = JSON.parse(localStorage.getItem("createFormDraft"));
-    if (draft) {
-      setTitle(draft.title || "");
-      setContent(draft.content || "");
-      setContentType(draft.contentType || "post");
-      setVideoUrl(draft.videoUrl || "");
-      setSelectedCategories(draft.categories || []);
-      setPrimaryImagePreview(draft.primaryImagePreview || null);
+
+    if (editingItem) {
+      setTitle(editingItem.title || "");
+      setContent(editingItem.desc || editingItem.content || "");
+      setContentType(editingType);
+      setVideoUrl(editingItem.video_url || "");
+      setSelectedCategories(editingItem.categories?.map((c) => c.id) || []);
+      setPrimaryImagePreview(
+        editingItem.img_url || editingItem.thumbnail || null
+      );
+    } else {
+      const draft = JSON.parse(localStorage.getItem("createFormDraft"));
+      if (draft) {
+        setTitle(draft.title || "");
+        setContent(draft.content || "");
+        setContentType(draft.contentType || "post");
+        setVideoUrl(draft.videoUrl || "");
+        setSelectedCategories(draft.categories || []);
+        setPrimaryImagePreview(draft.primaryImagePreview || null);
+      }
     }
-  }, []);
+  }, [editingItem, editingType, fetchCategories]);
 
   // Save draft
   useEffect(() => {
-    localStorage.setItem(
-      "createFormDraft",
-      JSON.stringify({
-        title,
-        content,
-        contentType,
-        videoUrl,
-        categories: selectedCategories,
-        primaryImagePreview,
-      })
-    );
+    if (!isEditing) {
+      localStorage.setItem(
+        "createFormDraft",
+        JSON.stringify({
+          title,
+          content,
+          contentType,
+          videoUrl,
+          categories: selectedCategories,
+          primaryImagePreview,
+        })
+      );
+    }
   }, [
     title,
     content,
@@ -105,6 +121,7 @@ function CreateForm() {
     videoUrl,
     selectedCategories,
     primaryImagePreview,
+    isEditing,
   ]);
 
   const handlePrimaryImageChange = (e) => {
@@ -128,8 +145,8 @@ function CreateForm() {
     let temp = {};
     if (!title.trim()) temp.title = "Title is required.";
     if (!content.trim()) temp.content = "Content is required.";
-    if (contentType === "post" && !primaryImageFile)
-      temp.primaryImage = "Primary image is required.";
+    if (contentType === "post" && !primaryImageFile && !isEditing)
+      temp.primaryImage = "Primary image is required."; // ✅ fixed validation
     if (contentType === "video" && !videoUrl.trim())
       temp.videoUrl = "Video URL is required.";
     if (contentType === "post" && selectedCategories.length === 0)
@@ -140,6 +157,37 @@ function CreateForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isEditing) {
+      if (contentType === "video") {
+        await updateVideo(editingItem.id, {
+          title,
+          desc: content,
+          video_url: videoUrl,
+          author_id: author.id,
+          thumbnail: primaryImageFile || editingItem.thumbnail,
+        });
+      } else {
+        await updatePost(editingItem.id, {
+          title,
+          desc: content,
+          categories: selectedCategories,
+          primaryImage: primaryImageFile || editingItem.img_url,
+          author_id: author.id,
+        });
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: `${
+          contentType === "video" ? "Video" : "Post"
+        } updated successfully.`,
+      });
+      navigate(-1);
+      return;
+    }
+
     if (!validate()) {
       Swal.fire({
         icon: "error",
@@ -181,7 +229,9 @@ function CreateForm() {
       Swal.fire({
         icon: "success",
         title: "Success!",
-        text: `${contentType === "video" ? "Video" : "Post"} created successfully.`,
+        text: `${
+          contentType === "video" ? "Video" : "Post"
+        } created successfully.`,
         confirmButtonColor: "#3085d6",
       });
 
@@ -224,7 +274,7 @@ function CreateForm() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Create New Content
+                  {isEditing ? "Edit Content" : "Create New Content"} {/* ✅ dynamic title */}
                 </MDTypography>
               </MDBox>
 
@@ -253,11 +303,8 @@ function CreateForm() {
                     <select
                       value={contentType}
                       onChange={(e) => setContentType(e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "8px",
-                        borderRadius: "4px",
-                      }}
+                      style={{ width: "100%", padding: "10px" }}
+                      disabled={isEditing} // lock type when editing
                     >
                       <option value="post">Post</option>
                       <option value="video">Video</option>
@@ -291,9 +338,9 @@ function CreateForm() {
                       data={content}
                       onReady={(editor) => {
                         editorRef.current = { editor };
-                        editor.plugins
-                          .get("FileRepository")
-                          .createUploadAdapter = (loader) =>
+                        editor.plugins.get(
+                          "FileRepository"
+                        ).createUploadAdapter = (loader) =>
                           new CustomUploadAdapter(loader);
                       }}
                       onChange={(event, editor) => setContent(editor.getData())}
@@ -439,37 +486,39 @@ function CreateForm() {
                       color="info"
                       fullWidth
                     >
-                      Submit
+                      {isEditing ? "Update" : "Submit"} {/* ✅ dynamic button */}
                     </MDButton>
-                    <MDButton
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      fullWidth
-                      sx={{ mt: 1 }}
-                      onClick={() => {
-                        setTitle("");
-                        setContent("");
-                        setContentType("post");
-                        setVideoUrl("");
-                        setSelectedCategories([]);
-                        setPrimaryImagePreview(null);
-                        setPrimaryImageFile(null);
-                        setErrors({});
-                        if (editorRef.current?.editor) {
-                          editorRef.current.editor.setData("");
-                        }
-                        localStorage.removeItem("createFormDraft");
+                    {!isEditing && (
+                      <MDButton
+                        variant="outlined"
+                        color="error"
+                        size="small"
+                        fullWidth
+                        sx={{ mt: 1 }}
+                        onClick={() => {
+                          setTitle("");
+                          setContent("");
+                          setContentType("post");
+                          setVideoUrl("");
+                          setSelectedCategories([]);
+                          setPrimaryImagePreview(null);
+                          setPrimaryImageFile(null);
+                          setErrors({});
+                          if (editorRef.current?.editor) {
+                            editorRef.current.editor.setData("");
+                          }
+                          localStorage.removeItem("createFormDraft");
 
-                        Swal.fire({
-                          icon: "info",
-                          title: "Cleared",
-                          text: "All inputs and saved draft have been cleared.",
-                        });
-                      }}
-                    >
-                      Clear Inputs
-                    </MDButton>
+                          Swal.fire({
+                            icon: "info",
+                            title: "Cleared",
+                            text: "All inputs and saved draft have been cleared.",
+                          });
+                        }}
+                      >
+                        Clear Inputs
+                      </MDButton>
+                    )}
                   </MDBox>
                 </form>
               </MDBox>
