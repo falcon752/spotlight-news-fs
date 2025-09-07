@@ -183,11 +183,6 @@ function CreateCategory() {
                               All Categories
                             </MDTypography>
                           </TableCell>
-                          <TableCell align="right">
-                            <MDTypography variant="subtitle1" fontWeight="medium">
-                              Actions
-                            </MDTypography>
-                          </TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>

@@ -1,3 +1,5 @@
+// src/routes.js
+
 // Spotlight Admin layouts
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
@@ -5,7 +7,6 @@ import CreateForm from "layouts/create-form";
 import CreateCategory from "layouts/create-category";
 import UsersTable from "layouts/users-table"; // Users Table
 import EditUsers from "layouts/edit-users"; // <-- Edit Users / Edit Roles page
-
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
@@ -16,6 +17,9 @@ import SignUp from "layouts/authentication/sign-up";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
+// Auth wrapper
+import PrivateRoute from "components/PrivateRoute";
+
 const routes = [
   {
     type: "collapse",
@@ -23,7 +27,11 @@ const routes = [
     key: "dashboard",
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
-    component: <Dashboard />,
+    component: (
+      <PrivateRoute roles={["Admin", "Chief Admin"]}>
+        <Dashboard />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -31,7 +39,11 @@ const routes = [
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
-    component: <Tables />,
+    component: (
+      <PrivateRoute roles={["Admin", "Chief Admin"]}>
+        <Tables />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -39,7 +51,11 @@ const routes = [
     key: "create-form",
     route: "/create-form",
     icon: <Icon>note_add</Icon>,
-    component: <CreateForm />,
+    component: (
+      <PrivateRoute roles={["Admin", "Chief Admin"]}>
+        <CreateForm />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -47,7 +63,11 @@ const routes = [
     key: "create-category",
     route: "/create-category",
     icon: <Icon>category</Icon>,
-    component: <CreateCategory />,
+    component: (
+      <PrivateRoute roles={["Admin", "Chief Admin"]}>
+        <CreateCategory />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -55,15 +75,23 @@ const routes = [
     key: "users-table",
     route: "/users-table",
     icon: <Icon>people</Icon>,
-    component: <UsersTable />,
+    component: (
+      <PrivateRoute roles={["Chief Admin"]}>
+        <UsersTable />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
     name: "Edit Users",
     key: "edit-users",
     route: "/edit-users", // <-- URL for edit roles
-    icon: <Icon>edit</Icon>, // <-- icon
-    component: <EditUsers />, // <-- component
+    icon: <Icon>edit</Icon>,
+    component: (
+      <PrivateRoute roles={["Chief Admin"]}>
+        <EditUsers />
+      </PrivateRoute>
+    ),
   },
   {
     type: "collapse",
@@ -71,8 +99,13 @@ const routes = [
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
-    component: <Profile />,
+    component: (
+      <PrivateRoute roles={["Admin", "Chief Admin", "Visitor"]}>
+        <Profile />
+      </PrivateRoute>
+    ),
   },
+  // Public routes
   {
     type: "collapse",
     name: "Sign In",

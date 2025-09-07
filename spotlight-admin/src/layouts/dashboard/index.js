@@ -11,13 +11,14 @@ import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
 // Data
 import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
-import { posts, videos } from "store/mockData"; // only posts and videos
 
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
-import useAuthStore from "store/authStore"; // Zustand store
+import useAuthStore from "store/useAuthStore"; // Zustand store for authors
+import usePostStore from "store/usePostStore"; // ✅ new store for posts
+import useVideoStore from "store/useVideoStore"; // ✅ new store for videos
 
 // Helper to calculate percentage change
 const calculatePercentage = (current, previous) => {
@@ -28,13 +29,17 @@ const calculatePercentage = (current, previous) => {
 
 function Dashboard() {
   const { authors, fetchAuthors, isLoading } = useAuthStore();
+  const { posts, fetchPosts, loading: postsLoading } = usePostStore();
+  const { videos, fetchVideos, loading: videosLoading } = useVideoStore();
 
-  // Fetch authors on mount
+  // Fetch authors, posts, and videos on mount
   useEffect(() => {
     fetchAuthors();
-  }, [fetchAuthors]);
+    fetchPosts();
+    fetchVideos();
+  }, [fetchAuthors, fetchPosts, fetchVideos]);
 
-  // Simulated previous counts (replace with real historical data)
+  // Simulated previous counts (replace with real historical data later if you want)
   const prevPosts = 2;
   const prevVideos = 3;
   const prevAuthors = 4;
@@ -45,7 +50,8 @@ function Dashboard() {
 
   const { sales, tasks } = reportsLineChartData;
 
-  if (isLoading) {
+  // Show loader while fetching data
+  if (isLoading || postsLoading || videosLoading) {
     return (
       <DashboardLayout>
         <DashboardNavbar />
@@ -70,7 +76,7 @@ function Dashboard() {
                 color="dark"
                 icon="article"
                 title="Posts"
-                count={posts.length}
+                count={posts.length} // ✅ dynamic from backend
                 percentage={{
                   color: posts.length - prevPosts >= 0 ? "success" : "error",
                   amount: postsChange,
@@ -87,7 +93,7 @@ function Dashboard() {
                 color="info"
                 icon="video_library"
                 title="Videos"
-                count={videos.length}
+                count={videos.length} // ✅ dynamic from backend
                 percentage={{
                   color: videos.length - prevVideos >= 0 ? "success" : "error",
                   amount: videosChange,
@@ -104,17 +110,17 @@ function Dashboard() {
                 color="success"
                 icon="person"
                 title="Total Users"
-                count={authors.length} // from Zustand store
+                count={authors.length} // ✅ from backend
                 percentage={{
                   color: authors.length - prevAuthors >= 0 ? "success" : "error",
-                  amount: `${authorsChange}%`,
+                  amount: authorsChange,
                   label: "compared to last week",
                 }}
               />
             </MDBox>
           </Grid>
 
-          {/* Followers */}
+          {/* Followers (static for now) */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
@@ -184,7 +190,7 @@ function Dashboard() {
               <Projects />
             </Grid>
             <Grid item xs={12} md={6} lg={4}>
-              <OrdersOverview />
+              {/* <OrdersOverview /> */}
             </Grid>
           </Grid>
         </MDBox>

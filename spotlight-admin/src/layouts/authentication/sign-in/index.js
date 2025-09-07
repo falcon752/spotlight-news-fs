@@ -17,7 +17,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import axiosAdmin from "api/axiosAdmin";
-import useAuthStore from "store/authStore";
+import useAuthStore from "store/useAuthStore";
 
 function Basic() {
   const navigate = useNavigate();

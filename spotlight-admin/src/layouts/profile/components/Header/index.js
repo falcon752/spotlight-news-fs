@@ -20,7 +20,7 @@ import backgroundImage from "assets/images/bg-profile.jpeg";
 import { useMaterialUIController, setOpenConfigurator } from "context";
 
 // Store
-import useAuthStore from "store/authStore";
+import useAuthStore from "store/useAuthStore";
 
 function Header({ children }) {
   const [controller, dispatch] = useMaterialUIController();

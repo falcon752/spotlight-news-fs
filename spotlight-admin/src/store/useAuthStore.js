@@ -1,9 +1,10 @@
+// src/store/useAuthStore.js
 import { create } from "zustand";
 import axiosAdmin from "api/axiosAdmin";
 
 const useAuthStore = create((set) => ({
   author: null,
-  token: null,
+  token: localStorage.getItem("token") || null, // <-- restore from storage
   authors: [],
   isLoading: false,
   error: null,
@@ -18,6 +19,23 @@ const useAuthStore = create((set) => ({
     set({ author, token });
   },
 
+  // Initialize on app start
+  initializeAuth: async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axiosAdmin.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      try {
+        const res = await axiosAdmin.get("/me");
+        set({ author: res.data.author, token });
+      } catch (err) {
+        console.error("Auth expired or invalid:", err);
+        localStorage.removeItem("token");
+        delete axiosAdmin.defaults.headers.common["Authorization"];
+        set({ author: null, token: null });
+      }
+    }
+  },
+
   // Logout
   logout: () => {
     delete axiosAdmin.defaults.headers.common["Authorization"];
@@ -29,15 +47,11 @@ const useAuthStore = create((set) => ({
   fetchMe: async () => {
     set({ isLoading: true, error: null });
     try {
-      const token = localStorage.getItem("token");
-      if (token) {
-        axiosAdmin.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      }
       const res = await axiosAdmin.get("/me");
-      set({ author: res.data.author, token: token || null, isLoading: false });
+      set({ author: res.data.author, isLoading: false });
     } catch (err) {
       console.error("Failed to fetch current user:", err);
-      set({ author: null, token: null, isLoading: false, error: err.message });
+      set({ author: null, isLoading: false, error: err.message });
     }
   },
 
@@ -80,8 +94,8 @@ const useAuthStore = create((set) => ({
   login: async (email, password) => {
     try {
       const res = await axiosAdmin.post("/login", { email, password });
-      const { author, token } = res.data;
-      useAuthStore.getState().setAuth(author, token);
+      const { author, access_token } = res.data;
+      useAuthStore.getState().setAuth(author, access_token);
       return author;
     } catch (err) {
       set({ notification: { type: "error", message: "Invalid credentials." } });
@@ -93,8 +107,8 @@ const useAuthStore = create((set) => ({
   register: async (data) => {
     try {
       const res = await axiosAdmin.post("/register", data);
-      const { author, token } = res.data;
-      useAuthStore.getState().setAuth(author, token);
+      const { author, access_token } = res.data;
+      useAuthStore.getState().setAuth(author, access_token);
       return author;
     } catch (err) {
       set({ notification: { type: "error", message: "Failed to register." } });

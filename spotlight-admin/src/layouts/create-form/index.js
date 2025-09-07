@@ -13,7 +13,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import usePostStore from "store/usePostStore";
 import { useCategoryStore } from "store/useCategoryStore";
-import useAuthStore from "store/authStore";
+import useAuthStore from "store/useAuthStore";
 import useVideoStore from "store/useVideoStore";
 import Swal from "sweetalert2";
 import axiosAdmin from "api/axiosAdmin";

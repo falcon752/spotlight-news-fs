@@ -1,6 +1,6 @@
 // src/api/axiosAdmin.js
 import axios from "axios";
-import useAuthStore from "../store/authStore";
+import useAuthStore from "../store/useAuthStore";
 
 const axiosAdmin = axios.create({
   baseURL: "http://127.0.0.1:8000/api",

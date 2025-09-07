@@ -11,7 +11,7 @@ import CoverLayout from "layouts/authentication/components/CoverLayout";
 import bgImage from "assets/images/bg-sign-up-cover.jpeg";
 
 import axiosAdmin from "api/axiosAdmin";
-import useAuthStore from "store/authStore";
+import useAuthStore from "store/useAuthStore";
 
 function Cover() {
   const navigate = useNavigate();

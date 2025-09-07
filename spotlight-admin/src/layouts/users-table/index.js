@@ -8,7 +8,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
-import useAuthStore from "store/authStore";
+import useAuthStore from "store/useAuthStore";
 
 function UsersTable() {
   const { authors, fetchAuthors, isLoading } = useAuthStore();
