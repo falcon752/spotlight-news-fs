@@ -1649,9 +1649,12 @@ section,
 }
 
 .latest-posts .post-author-img {
-  width: 50px;
+  width: 50px;       /* container size */
+  height: 50px;      /* container size */
   border-radius: 50%;
+  object-fit: cover; 
   margin-right: 15px;
+  margin-bottom: 15px;
 }
 
 .latest-posts .post-author {
@@ -1761,6 +1764,14 @@ section,
   overflow: hidden;
 }
 
+.category-postst .post-img img {
+  width: 100%;         /* take full width of container */
+  max-height: 240px;   /* keep the container height */
+  object-fit: cover; /* scale the image to fit inside container without cropping */
+  display: block;
+}
+
+
 .category-postst .post-category {
   font-size: 16px;
   color: color-mix(in srgb, var(--default-color), transparent 40%);
@@ -1784,8 +1795,10 @@ section,
 }
 
 .category-postst .post-author-img {
-  width: 50px;
+  width: 50px;       /* keep container size */
+  height: 50px;      /* keep container size */
   border-radius: 50%;
+  object-fit: cover;
   margin-right: 15px;
 }
 

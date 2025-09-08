@@ -21,6 +21,12 @@ const Home = () => {
 
   if (loading) return <p className="text-center mt-10">Loading posts...</p>;
 
+  // Utility to remove all HTML tags
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "");
+  };
+
   // Enrich posts with author + first category details
   const enrichedPosts = posts.map((post) => ({
     ...post,
@@ -132,7 +138,7 @@ const Home = () => {
                         {post.title}
                       </Link>
                     </h2>
-                    <p>{post.desc}</p>
+                    <p>{stripHtml(post.desc)}</p>
                     <Link
                       to={`/category/${post.categorySlug}/${post.slug}`}
                       className="read-more"
@@ -188,6 +194,7 @@ const Home = () => {
                         {post.title}
                       </Link>
                     </h2>
+                    <p>{stripHtml(post.desc)}</p>
                   </div>
                 </article>
               </div>
@@ -219,6 +226,7 @@ const Home = () => {
                       <span className="read-time">{post.readTime}</span>
                       <span className="post-date">{post.date}</span>
                     </div>
+                    <p>{stripHtml(post.desc)}</p>
                   </div>
                 </article>
               </div>
@@ -265,6 +273,7 @@ const Home = () => {
                       </p>
                     </div>
                   </div>
+                  <p>{stripHtml(post.desc)}</p>
                 </article>
               </div>
             ))}

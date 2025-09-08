@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, NavLink, useLocation } from "react-router-dom";
 import {
   BsFacebook,
@@ -8,24 +8,40 @@ import {
   BsChevronDown,
   BsList
 } from "react-icons/bs";
+import { usePostStore } from "../store/usePostStore";
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
+  const { categories, fetchCategories } = usePostStore();
+  const [dynamicCategories, setDynamicCategories] = useState([]);
 
-const handleSearchSubmit = (e) => {
-  e.preventDefault();
-  if (searchTerm.trim()) {
-    navigate(`/search-results?query=${encodeURIComponent(searchTerm.trim())}`);
-  }
-};
+  // Fetch dynamic categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      if (!categories || categories.length === 0) {
+        await fetchCategories();
+      }
+      // Filter out static categories to only show dynamic ones
+      const filtered = categories.filter(
+        (cat) => !["videos", "contact", "donate", "home"].includes(cat.slug)
+      );
+      setDynamicCategories(filtered);
+    };
+    loadCategories();
+  }, [categories, fetchCategories]);
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/search-results?query=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
 
-  // Dropdown categories
-  const categorySlugs = ["investigation", "lifestyle", "fact-check", "videos"];
-  const isCategoryActive = categorySlugs.some(
-    (slug) => location.pathname === `/category/${slug}`
+  const categorySlugs = dynamicCategories.map((cat) => cat.slug);
+  const isCategoryActive = categorySlugs.some((slug) =>
+    location.pathname.startsWith(`/category/${slug}`)
   );
 
   return (
@@ -76,7 +92,6 @@ const handleSearchSubmit = (e) => {
               </a>
             </div>
 
-            {/* 🔎 Updated Search Form */}
             <form className="search-form ms-4" onSubmit={handleSearchSubmit}>
               <input
                 type="text"
@@ -97,6 +112,7 @@ const handleSearchSubmit = (e) => {
         <div className="container d-flex justify-content-center position-relative">
           <nav id="navmenu" className="navmenu">
             <ul>
+              {/* Static links */}
               <li>
                 <NavLink
                   to="/"
@@ -107,45 +123,28 @@ const handleSearchSubmit = (e) => {
                 </NavLink>
               </li>
 
-              <li>
-                <NavLink
-                  to="/category/news"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
-                >
-                  News
-                </NavLink>
-              </li>
-
               <li className={`dropdown ${isCategoryActive ? "active" : ""}`}>
                 <NavLink to="#" className={() => undefined}>
                   <span>Categories</span>
                   <BsChevronDown className="toggle-dropdown" />
                 </NavLink>
                 <ul>
-                  {categorySlugs.map((slug) => (
-                    <li key={slug}>
+                  {dynamicCategories.map((cat) => (
+                    <li key={cat.id}>
                       <NavLink
-                        to={`/category/${slug}`}
+                        to={`/category/${cat.slug}`}
                         className={({ isActive }) =>
                           isActive ? "active" : undefined
                         }
                       >
-                        {slug.charAt(0).toUpperCase() + slug.slice(1).replace("-", " ")}
+                        {cat.name}
                       </NavLink>
                     </li>
                   ))}
                 </ul>
               </li>
 
-              <li>
-                <NavLink
-                  to="/category/impacts"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
-                >
-                  Impacts
-                </NavLink>
-              </li>
-
+              {/* Static links */}
               <li>
                 <NavLink
                   to="/category/videos"

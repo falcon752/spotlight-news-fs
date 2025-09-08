@@ -1,55 +1,56 @@
-import React, { useEffect } from "react";
+// src/pages/BlogDetails.jsx
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "bootstrap-icons/font/bootstrap-icons.css";
 import SideBar from "../components/SideBar";
 import { Helmet } from "react-helmet-async";
 import Breadcrumbs from "../components/BreadCrumbs";
-
-import { posts, videos, categories, authors } from "../store/mockData";
-
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { usePostStore } from "../store/usePostStore";
 
 const MySwal = withReactContent(Swal);
 
 const BlogDetails = () => {
-  const { categorySlug, postSlug } = useParams();
+  const { postSlug } = useParams();
+  const { posts, fetchPosts, categories, fetchCategories, loading } =
+    usePostStore();
+
+  const [post, setPost] = useState(null);
 
   useEffect(() => {
-    AOS.init({
-      duration: 600,
-      easing: "ease-in-out",
-      once: true,
-    });
+    AOS.init({ duration: 600, easing: "ease-in-out", once: true });
   }, []);
 
-  // Merge posts and videos
-  const allItems = [...posts, ...videos];
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!categories || categories.length === 0) await fetchCategories();
+      if (!posts || posts.length === 0) await fetchPosts();
+    };
+    fetchData();
+  }, [categories, posts, fetchCategories, fetchPosts]);
 
-  const item = allItems.find((i) => i.slug === postSlug);
+  useEffect(() => {
+    if (!posts) return;
+    const foundPost = posts.find((p) => p.slug === postSlug);
+    setPost(foundPost || null);
+  }, [posts, postSlug]);
 
-  if (!item) {
-    return (
-      <main className="main">
-        <div className="container">
-          <h2>Content not found</h2>
-          <Link to="/">Go back home</Link>
-        </div>
-      </main>
-    );
-  }
+  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (!post) return <p className="text-center mt-10">Post not found.</p>;
 
-  const author = authors.find((a) => a.id === item.authorId);
-  const category = categories.find((c) => c.id === item.categoryId);
+  const author = post.author;
+  const category = post.categories?.[0];
+  const isVideo = post.type === "video";
 
-  const isVideo = item.type === "video";
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, ""); // removes all HTML tags
+  };
 
-  // Function to open video in SweetAlert modal
   const openVideo = () => {
-    if (!item.videoUrl) return;
+    if (!post.videoUrl) return;
 
     const getEmbedUrl = (url) => {
       try {
@@ -68,10 +69,10 @@ const BlogDetails = () => {
       }
     };
 
-    const embedUrl = getEmbedUrl(item.videoUrl);
+    const embedUrl = getEmbedUrl(post.videoUrl);
 
     MySwal.fire({
-      title: item.title,
+      title: post.title,
       html: `
         <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
           <iframe 
@@ -87,44 +88,49 @@ const BlogDetails = () => {
       showCloseButton: true,
       showConfirmButton: false,
       background: "#000",
-      customClass: { title: "swal2-video-title" },
     });
   };
 
   return (
     <>
       <Helmet>
-        <title>{item.title} | Spotlight</title>
+        <title>{post.title} | Spotlight</title>
       </Helmet>
 
       <main className="main">
         <div className="page-title">
           <Breadcrumbs />
           <div className="title-wrapper">
-            <h1>{item.title}</h1>
+            <h1>{post.title}</h1>
           </div>
         </div>
 
         <div className="container">
           <div className="row">
             <div className="col-lg-8">
-              <section id="blog-details" className="blog-details section">
+              <section className="blog-details section">
                 <div className="container" data-aos="fade-up">
                   <article className="article">
                     {/* Hero Image */}
                     <div
                       className="hero-img"
-                      style={{ position: "relative", cursor: isVideo ? "pointer" : "default" }}
+                      style={{
+                        position: "relative",
+                        cursor: isVideo ? "pointer" : "default",
+                      }}
                       onClick={isVideo ? openVideo : undefined}
                       data-aos="zoom-in"
                     >
                       <img
-                        src={item.img || item.thumbnail}
-                        alt={item.title}
+                        src={post.img || post.thumbnail}
+                        alt={post.title}
                         className="img-fluid"
-                        loading="lazy"
+                        style={{
+                          width: "100%",
+                          height: "500px",
+                          objectFit: "cover",
+                        }}
                       />
-
                       {isVideo && (
                         <div
                           style={{
@@ -140,49 +146,60 @@ const BlogDetails = () => {
                           ►
                         </div>
                       )}
-
-                      {/* Meta overlay */}
-                      <div className="meta-overlay">
-                        <div className="meta-categories">
-                          <Link to={`/${category?.slug}`} className="category">
-                            {category?.name}
-                          </Link>
-                          <span className="divider">•</span>
-                          {item.readTime && (
-                            <span className="reading-time">
-                              <i className="bi bi-clock"></i> {item.readTime}
-                            </span>
-                          )}
-                        </div>
-                      </div>
                     </div>
 
-                    <div className="article-content" data-aos="fade-up" data-aos-delay="100">
-                      <div className="content-header">
-                        <div className="author-info">
-                          <div className="author-details">
-                            <img src={author?.avatar} alt={author?.name} className="author-img" />
-                            <div className="info">
-                              <h4>{author?.name}</h4>
-                            </div>
-                          </div>
-                          <div className="post-meta">
-                            <span className="date">
-                              <i className="bi bi-calendar3"></i> {item.date}
-                            </span>
-                            {item.comments && (
-                              <>
-                                <span className="divider">•</span>
-                                <span className="comments">
-                                  <i className="bi bi-chat-text"></i> {item.comments} Comments
-                                </span>
-                              </>
-                            )}
-                          </div>
+                    {/* Post Content */}
+                    <div
+                      className="article-content"
+                      data-aos="fade-up"
+                      data-aos-delay="100"
+                      style={{ marginTop: "20px" }}
+                    >
+                      <div className="content-header d-flex align-items-center mb-4">
+                        <img
+                          src={author?.avatar}
+                          alt={author?.name}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            marginRight: "15px",
+                          }}
+                        />
+                        <div>
+                          <h4>{author?.name}</h4>
+                          <p style={{ margin: 0 }}>
+                            <i className="bi bi-calendar3"></i> {post.date}
+                          </p>
                         </div>
                       </div>
 
-                      {item.desc && <p className="lead">{item.desc}</p>}
+                      {/* CKEditor content */}
+                      {post.desc.split(/<\/?p>/).map((line, idx) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return null;
+                        if (trimmed.includes("<img")) {
+                          // Extract src from img tag
+                          const srcMatch =
+                            trimmed.match(/src=["']([^"']+)["']/);
+                          const src = srcMatch ? srcMatch[1] : null;
+                          return src ? (
+                            <img
+                              key={idx}
+                              src={src}
+                              alt={post.title}
+                              style={{
+                                width: "100%",
+                                height: "500px",
+                                objectFit: "cover",
+                                margin: "20px 0",
+                              }}
+                            />
+                          ) : null;
+                        }
+                        return <p key={idx}>{stripHtml(trimmed)}</p>; // ✅ fixed here
+                      })}
                     </div>
                   </article>
                 </div>
