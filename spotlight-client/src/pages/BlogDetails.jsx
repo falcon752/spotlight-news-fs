@@ -44,9 +44,18 @@ const BlogDetails = () => {
   const category = post.categories?.[0];
   const isVideo = post.type === "video";
 
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>/g, ""); // removes all HTML tags
+  // Strip HTML tags
+  const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
+
+  // Format date like in Home.jsx
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Unknown Date";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const openVideo = () => {
@@ -170,7 +179,8 @@ const BlogDetails = () => {
                         <div>
                           <h4>{author?.name}</h4>
                           <p style={{ margin: 0 }}>
-                            <i className="bi bi-calendar3"></i> {post.date}
+                            <i className="bi bi-calendar3"></i>{" "}
+                            {formatDate(post.date)}
                           </p>
                         </div>
                       </div>
@@ -198,7 +208,7 @@ const BlogDetails = () => {
                             />
                           ) : null;
                         }
-                        return <p key={idx}>{stripHtml(trimmed)}</p>; // ✅ fixed here
+                        return <p key={idx}>{stripHtml(trimmed)}</p>;
                       })}
                     </div>
                   </article>

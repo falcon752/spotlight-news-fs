@@ -2,18 +2,19 @@
 import { create } from "zustand";
 import axiosClient from "../api/axiosClient";
 
-const useVideoStore = create((set) => ({
-  videos: [],       // initial state
 
-  // Fetch videos from backend
+export const useVideoStore = create((set) => ({
+  videos: [],
+  loading: false,
+
   fetchVideos: async () => {
+    set({ loading: true });
     try {
-      const videos = await axiosClient.get("/videos");
-      set({ videos });
+      const { data } = await axiosClient.get("/api/videos"); // backend endpoint
+      set({ videos: data, loading: false });
     } catch (err) {
-      console.error("Failed to fetch videos:", err);
+      console.error("Error fetching videos:", err);
+      set({ loading: false });
     }
   },
 }));
-
-export default useVideoStore;

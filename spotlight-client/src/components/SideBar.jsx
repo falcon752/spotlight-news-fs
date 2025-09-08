@@ -1,11 +1,19 @@
 // components/Sidebar.jsx
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { posts, categories, videos } from "../store/mockData";
+import { usePostStore } from "../store/usePostStore";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = React.useState("");
+
+  const { categories, posts, fetchCategories, fetchPosts, loading } = usePostStore();
+
+  // Fetch categories and posts on mount
+  useEffect(() => {
+    if (!categories || categories.length === 0) fetchCategories();
+    if (!posts || posts.length === 0) fetchPosts();
+  }, [categories, posts, fetchCategories, fetchPosts]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -14,12 +22,11 @@ const Sidebar = () => {
     }
   };
 
-  const getCategoryCount = (catId, slug) => {
-    if (slug === "videos") {
-      return videos.filter((v) => v.categoryId === catId).length;
-    }
-    return posts.filter((p) => p.categoryId === catId).length;
+  const getCategoryCount = (catId) => {
+    return posts.filter((p) => p.categories?.some((c) => c.id === catId)).length;
   };
+
+  if (loading) return <p>Loading sidebar...</p>;
 
   return (
     <div className="col-lg-4">
@@ -45,19 +52,22 @@ const Sidebar = () => {
           <div className="categories-widget widget-item">
             <h3 className="widget-title">Categories</h3>
             <ul className="mt-3">
-              {categories.map((cat) => (
-                <li key={cat.id}>
-                  <Link to={`/category/${cat.slug}`}>
-                    {cat.name}{" "}
-                    <span>({getCategoryCount(cat.id, cat.slug)})</span>
-                  </Link>
-                </li>
-              ))}
+              {categories.map((cat) => {
+                const count = getCategoryCount(cat.id);
+                if (count === 0) return null; // skip categories with no posts
+                return (
+                  <li key={cat.id}>
+                    <Link to={`/category/${cat.slug}`}>
+                      {cat.name} <span>({count})</span>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         </div>
-    </aside>
-    </div >
+      </aside>
+    </div>
   );
 };
 

@@ -1,4 +1,3 @@
-// components/Home.jsx
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { BsPerson, BsClock, BsArrowRight } from "react-icons/bs";
@@ -16,24 +15,40 @@ const Home = () => {
 
   useEffect(() => {
     fetchPosts();
-    fetchCategories(); // optional: for global filters
+    fetchCategories();
   }, []);
 
   if (loading) return <p className="text-center mt-10">Loading posts...</p>;
 
-  // Utility to remove all HTML tags
-  const stripHtml = (html) => {
-    if (!html) return "";
-    return html.replace(/<[^>]*>/g, "");
+  // Remove HTML tags
+  const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
+
+  // Truncate after N words
+  const truncateWords = (html, wordLimit = 10) => {
+    const text = stripHtml(html);
+    const words = text.split(/\s+/).slice(0, wordLimit);
+    return words.join(" ") + (words.length >= wordLimit ? "..." : "");
   };
 
-  // Enrich posts with author + first category details
+  // Format backend date to readable string
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Unknown Date";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Enrich posts with author + first category + formatted date
   const enrichedPosts = posts.map((post) => ({
     ...post,
     categoryName: post.categories[0]?.name || "Uncategorized",
     categorySlug: post.categories[0]?.slug || "uncategorized",
     authorName: post.author?.name || "Unknown",
     authorImg: post.author?.avatar || "",
+    formattedDate: formatDate(post.date),
   }));
 
   const featuredPostsData = enrichedPosts.slice(0, 3);
@@ -54,7 +69,7 @@ const Home = () => {
                 />
                 <div className="blog-content">
                   <div className="post-meta">
-                    <span className="date">{enrichedPosts[0].date}</span>
+                    <span className="date">{enrichedPosts[0].formattedDate}</span>
                     <span className="category">{enrichedPosts[0].categoryName}</span>
                   </div>
                   <h2 className="post-title">
@@ -64,6 +79,7 @@ const Home = () => {
                       {enrichedPosts[0].title}
                     </Link>
                   </h2>
+                  
                 </div>
               </article>
             )}
@@ -78,7 +94,7 @@ const Home = () => {
                 <img src={post.img} alt={post.title} className="img-fluid" />
                 <div className="blog-content">
                   <div className="post-meta">
-                    <span className="date">{post.date}</span>
+                    <span className="date">{post.formattedDate}</span>
                     <span className="category">{post.categoryName}</span>
                   </div>
                   <h3 className="post-title">
@@ -86,13 +102,13 @@ const Home = () => {
                       {post.title}
                     </Link>
                   </h3>
+                  
                 </div>
               </article>
             ))}
           </div>
         </div>
       </section>
-      {/* END BLOG HERO */}
 
       {/* FEATURED POSTS */}
       <section id="featured-posts" className="featured-posts section">
@@ -130,7 +146,7 @@ const Home = () => {
                         <BsPerson /> {post.authorName}
                       </span>
                       <span>
-                        <BsClock /> {post.date}
+                        <BsClock /> {post.formattedDate}
                       </span>
                     </div>
                     <h2>
@@ -138,7 +154,7 @@ const Home = () => {
                         {post.title}
                       </Link>
                     </h2>
-                    <p>{stripHtml(post.desc)}</p>
+                    <p>{truncateWords(post.desc, 10)}</p>
                     <Link
                       to={`/category/${post.categorySlug}/${post.slug}`}
                       className="read-more"
@@ -152,7 +168,6 @@ const Home = () => {
           </Swiper>
         </div>
       </section>
-      {/* END FEATURED POSTS */}
 
       {/* CATEGORY SECTION */}
       <section id="category-section" className="category-section section">
@@ -186,7 +201,7 @@ const Home = () => {
                           className="author-img"
                         />
                         <span className="author-name">{post.authorName}</span>
-                        <span className="post-date">{post.date}</span>
+                        <span className="post-date">{post.formattedDate}</span>
                       </div>
                     </div>
                     <h2 className="title">
@@ -194,7 +209,7 @@ const Home = () => {
                         {post.title}
                       </Link>
                     </h2>
-                    <p>{stripHtml(post.desc)}</p>
+                    <p>{truncateWords(post.desc, 10)}</p>
                   </div>
                 </article>
               </div>
@@ -224,9 +239,9 @@ const Home = () => {
                     </h3>
                     <div className="post-meta">
                       <span className="read-time">{post.readTime}</span>
-                      <span className="post-date">{post.date}</span>
+                      <span className="post-date">{post.formattedDate}</span>
                     </div>
-                    <p>{stripHtml(post.desc)}</p>
+                    <p>{truncateWords(post.desc, 10)}</p>
                   </div>
                 </article>
               </div>
@@ -234,7 +249,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-      {/* END CATEGORY SECTION */}
 
       {/* LATEST POSTS */}
       <section id="latest-posts" className="latest-posts section">
@@ -269,18 +283,17 @@ const Home = () => {
                     <div className="post-meta">
                       <p className="post-author">{post.authorName}</p>
                       <p className="post-date">
-                        <time dateTime={post.date}>{post.date}</time>
+                        <time dateTime={post.date}>{post.formattedDate}</time>
                       </p>
                     </div>
                   </div>
-                  <p>{stripHtml(post.desc)}</p>
+                  <p>{truncateWords(post.desc, 10)}</p>
                 </article>
               </div>
             ))}
           </div>
         </div>
       </section>
-      {/* END LATEST POSTS */}
     </>
   );
 };

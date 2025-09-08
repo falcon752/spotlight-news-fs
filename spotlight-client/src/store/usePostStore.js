@@ -1,4 +1,3 @@
-// src/store/usePostStore.js
 import { create } from "zustand";
 import axiosClient, { BASE_URL } from "../api/axiosClient";
 
@@ -25,6 +24,7 @@ export const usePostStore = create((set) => ({
                 : null,
             }
           : null,
+        date: post.created_at, // use created_at instead of date
       }));
       set({ posts });
     } catch (err) {
@@ -52,6 +52,7 @@ export const usePostStore = create((set) => ({
                   : null,
               }
             : null,
+          date: post.created_at, // use created_at
         },
       });
     } catch (err) {
