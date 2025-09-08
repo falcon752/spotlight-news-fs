@@ -7,11 +7,23 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VideoController;
 
+// ----------------------
 // Public authentication
+// ----------------------
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
+// ----------------------
+// Public content routes
+// ----------------------
+Route::get('/posts', [PostController::class, 'index']);          // Public: list posts
+Route::get('/posts/{id}', [PostController::class, 'show']);      // Public: single post
+Route::get('/categories', [CategoryController::class, 'index']); // Public: list categories
+Route::get('/categories/{id}', [CategoryController::class, 'show']); // Public: single category
+
+// ----------------------
 // Protected routes
+// ----------------------
 Route::middleware('auth:sanctum')->group(function () {
     // Current user
     Route::get('/me', [AuthorController::class, 'me']);
@@ -22,27 +34,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/authors/{id}', [AuthorController::class, 'update']);
     Route::delete('/authors/{id}', [AuthorController::class, 'destroy']);
 
-    // Categories CRUD
-    Route::apiResource('categories', CategoryController::class);
+    // Categories CRUD (excluding index/show since public)
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
 
-    // Posts CRUD
-    Route::get('/posts', [PostController::class, 'index']);
+    // Posts CRUD (excluding index/show since public)
     Route::post('/posts', [PostController::class, 'store']);
     Route::post('/uploads', [PostController::class, 'uploadImage']);
     Route::delete('/posts/clear', [PostController::class, 'clearAll']);
-    Route::get('/posts/{id}', [PostController::class, 'show']);
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
-
-    // Videos CRUD
+    // Videos CRUD (all protected)
     Route::get('/videos', [VideoController::class, 'index']);
     Route::post('/videos', [VideoController::class, 'store']);
+    Route::put('/videos/{id}', [VideoController::class, 'update']);
+    Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
     Route::delete('/videos/clear', [VideoController::class, 'clearAll']);
     Route::get('/videos/{id}', [VideoController::class, 'show']);
-    Route::put('/videos/{id}', [VideoController::class, 'update']); // ✅ Added update
-    Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
-
-
-
 });

@@ -1,39 +1,36 @@
 // components/Home.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { BsPerson, BsClock, BsChatDots, BsArrowRight } from "react-icons/bs";
+import { BsPerson, BsClock, BsArrowRight } from "react-icons/bs";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination } from "swiper/modules";
-
-// Swiper styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-// Relational Data
-import { posts, categories, authors } from "../store/mockData";
-
-// Utility to enrich posts with category + author details
-const getEnrichedPosts = () =>
-  posts.map((post) => {
-    const category = categories.find((c) => c.id === post.categoryId);
-    const author = authors.find((a) => a.id === post.authorId);
-
-    return {
-      ...post,
-      categoryName: category?.name || "Uncategorized",
-      categorySlug: category?.slug || "uncategorized",
-      authorName: author?.name || "Unknown",
-      authorImg: author?.avatar || "",
-    };
-  });
+// Store
+import { usePostStore } from "../store/usePostStore";
 
 const Home = () => {
-  const enrichedPosts = getEnrichedPosts();
+  const { posts, fetchPosts, fetchCategories, loading } = usePostStore();
 
-  // Featured posts = first 3 posts
+  useEffect(() => {
+    fetchPosts();
+    fetchCategories(); // optional: for global filters
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading posts...</p>;
+
+  // Enrich posts with author + first category details
+  const enrichedPosts = posts.map((post) => ({
+    ...post,
+    categoryName: post.categories[0]?.name || "Uncategorized",
+    categorySlug: post.categories[0]?.slug || "uncategorized",
+    authorName: post.author?.name || "Unknown",
+    authorImg: post.author?.avatar || "",
+  }));
+
   const featuredPostsData = enrichedPosts.slice(0, 3);
-  // List posts = rest of posts
   const listPosts = enrichedPosts.slice(3);
 
   return (
@@ -42,7 +39,6 @@ const Home = () => {
       <section id="blog-hero" className="blog-hero section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
           <div className="blog-grid">
-            {/* Featured Hero Post */}
             {enrichedPosts[0] && (
               <article className="blog-item featured" data-aos="fade-up">
                 <img
@@ -66,7 +62,6 @@ const Home = () => {
               </article>
             )}
 
-            {/* Next 4 small hero posts */}
             {enrichedPosts.slice(1, 5).map((post, idx) => (
               <article
                 className="blog-item"
@@ -131,9 +126,6 @@ const Home = () => {
                       <span>
                         <BsClock /> {post.date}
                       </span>
-                      {/* <span>
-                        <BsChatDots /> {post.comments} Comments
-                      </span> */}
                     </div>
                     <h2>
                       <Link to={`/category/${post.categorySlug}/${post.slug}`}>
@@ -166,7 +158,6 @@ const Home = () => {
         </div>
 
         <div className="container" data-aos="fade-up" data-aos-delay="100">
-          {/* Featured Category Posts */}
           <div className="row gy-4 mb-4">
             {featuredPostsData.map((post) => (
               <div className="col-lg-4" key={post.id}>
@@ -203,7 +194,6 @@ const Home = () => {
             ))}
           </div>
 
-          {/* List Posts */}
           <div className="row">
             {listPosts.map((post) => (
               <div className="col-xl-4 col-lg-6" key={post.id}>
