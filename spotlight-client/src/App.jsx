@@ -1,5 +1,5 @@
 // App.jsx
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useTemplateFeatures } from "./hooks/useTemplateFeatures";
 import Header from "./components/Header";
@@ -11,14 +11,25 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/404";
 import SearchResults from "./pages/SearchResults";
 import Donate from "./pages/Donate";
+import Loader from "./components/Loader"; // <-- new import
 
 function App() {
   useTemplateFeatures();
+
+  const [loading, setLoading] = useState(true); // <-- loading state
+
+  // Simulate app initialization or data fetching
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleScrollTop = (e) => {
     e.preventDefault();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  if (loading) return <Loader />; // <-- show loader while app is loading
 
   return (
     <>
