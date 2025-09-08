@@ -6,7 +6,7 @@ import {
   BsInstagram,
   BsSearch,
   BsChevronDown,
-  BsList
+  BsList,
 } from "react-icons/bs";
 import { usePostStore } from "../store/usePostStore";
 
@@ -35,7 +35,9 @@ const Header = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/search-results?query=${encodeURIComponent(searchTerm.trim())}`);
+      navigate(
+        `/search-results?query=${encodeURIComponent(searchTerm.trim())}`
+      );
     }
   };
 
@@ -116,7 +118,9 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
+                  className={({ isActive }) =>
+                    isActive ? "active" : undefined
+                  }
                   end
                 >
                   Home
@@ -147,8 +151,10 @@ const Header = () => {
               {/* Static links */}
               <li>
                 <NavLink
-                  to="/category/videos"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
+                  to="/videos"
+                  className={({ isActive }) =>
+                    isActive ? "active" : undefined
+                  }
                 >
                   Videos
                 </NavLink>
@@ -157,7 +163,9 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/contact"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
+                  className={({ isActive }) =>
+                    isActive ? "active" : undefined
+                  }
                 >
                   Contact
                 </NavLink>
@@ -166,7 +174,9 @@ const Header = () => {
               <li>
                 <NavLink
                   to="/donate"
-                  className={({ isActive }) => (isActive ? "active" : undefined)}
+                  className={({ isActive }) =>
+                    isActive ? "active" : undefined
+                  }
                 >
                   Donate
                 </NavLink>

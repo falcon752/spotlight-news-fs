@@ -11,14 +11,14 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/404";
 import SearchResults from "./pages/SearchResults";
 import Donate from "./pages/Donate";
-import Loader from "./components/Loader"; // <-- new import
+import Loader from "./components/Loader"; 
+import VideosPage from "./pages/VideoPage"; // <-- NEW import
 
 function App() {
   useTemplateFeatures();
 
-  const [loading, setLoading] = useState(true); // <-- loading state
+  const [loading, setLoading] = useState(true);
 
-  // Simulate app initialization or data fetching
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 1500);
     return () => clearTimeout(timer);
@@ -29,7 +29,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (loading) return <Loader />; // <-- show loader while app is loading
+  if (loading) return <Loader />;
 
   return (
     <>
@@ -47,9 +47,13 @@ function App() {
             element={<BlogDetails />}
           />
 
+          {/* Standalone videos page */}
+          <Route path="/videos" element={<VideosPage />} /> {/* <-- NEW */}
+
           <Route path="/contact" element={<Contact />} />
           <Route path="/donate" element={<Donate />} />
           <Route path="/search-results" element={<SearchResults />} />
+          <Route path="/videos/:videoSlug" element={<BlogDetails />} /> {/* NEW */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

@@ -1,6 +1,6 @@
 // src/pages/BlogDetails.jsx
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import SideBar from "../components/SideBar";
@@ -9,15 +9,23 @@ import Breadcrumbs from "../components/BreadCrumbs";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { usePostStore } from "../store/usePostStore";
+import { useVideoStore } from "../store/useVideoStore";
+import { getThumbnail, getEmbedUrl } from "../utils/videoUtils"; // ✅ utils
 
 const MySwal = withReactContent(Swal);
 
 const BlogDetails = () => {
-  const { postSlug } = useParams();
-  const { posts, fetchPosts, categories, fetchCategories, loading } =
-    usePostStore();
+  const { postSlug, videoSlug } = useParams();
+  const {
+    posts,
+    fetchPosts,
+    categories,
+    fetchCategories,
+    loading: postsLoading,
+  } = usePostStore();
+  const { videos, fetchVideos, loading: videosLoading } = useVideoStore();
 
-  const [post, setPost] = useState(null);
+  const [item, setItem] = useState(null);
 
   useEffect(() => {
     AOS.init({ duration: 600, easing: "ease-in-out", once: true });
@@ -27,27 +35,34 @@ const BlogDetails = () => {
     const fetchData = async () => {
       if (!categories || categories.length === 0) await fetchCategories();
       if (!posts || posts.length === 0) await fetchPosts();
+      if (!videos || videos.length === 0) await fetchVideos();
     };
     fetchData();
-  }, [categories, posts, fetchCategories, fetchPosts]);
+  }, [categories, posts, videos, fetchCategories, fetchPosts, fetchVideos]);
 
   useEffect(() => {
-    if (!posts) return;
-    const foundPost = posts.find((p) => p.slug === postSlug);
-    setPost(foundPost || null);
-  }, [posts, postSlug]);
+    if (postSlug && posts.length) {
+      const foundPost = posts.find((p) => p.slug === postSlug);
+      setItem(foundPost || null);
+    } else if (videoSlug && videos.length) {
+      const foundVideo = videos.find((v) => v.slug === videoSlug);
+      setItem(foundVideo || null);
+    }
+  }, [postSlug, videoSlug, posts, videos]);
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
-  if (!post) return <p className="text-center mt-10">Post not found.</p>;
+  if (postsLoading || videosLoading) {
+    return <p className="text-center mt-10">Loading...</p>;
+  }
+  if (!item) {
+    return <p className="text-center mt-10">Not found.</p>;
+  }
 
-  const author = post.author;
-  const category = post.categories?.[0];
-  const isVideo = post.type === "video";
+  const author = item.author;
+  const isVideo = item.type === "video";
 
-  // Strip HTML tags
+  // Helpers
   const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
-  // Format date like in Home.jsx
   const formatDate = (dateStr) => {
     if (!dateStr) return "Unknown Date";
     const d = new Date(dateStr);
@@ -59,29 +74,11 @@ const BlogDetails = () => {
   };
 
   const openVideo = () => {
-    if (!post.videoUrl) return;
-
-    const getEmbedUrl = (url) => {
-      try {
-        if (url.includes("youtu.be")) {
-          const videoId = url.split("youtu.be/")[1].split("?")[0];
-          return `https://www.youtube.com/embed/${videoId}`;
-        }
-        if (url.includes("watch?v=")) {
-          const videoId = new URL(url).searchParams.get("v");
-          return `https://www.youtube.com/embed/${videoId}`;
-        }
-        return url;
-      } catch (e) {
-        console.error("Invalid video URL:", url);
-        return url;
-      }
-    };
-
-    const embedUrl = getEmbedUrl(post.videoUrl);
+    if (!item.video_url) return; // ✅ fixed key
+    const embedUrl = getEmbedUrl(item.video_url);
 
     MySwal.fire({
-      title: post.title,
+      title: item.title,
       html: `
         <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;">
           <iframe 
@@ -97,20 +94,23 @@ const BlogDetails = () => {
       showCloseButton: true,
       showConfirmButton: false,
       background: "#000",
+      customClass: {
+        title: "swal2-video-title",
+      },
     });
   };
 
   return (
     <>
       <Helmet>
-        <title>{post.title} | Spotlight</title>
+        <title>{item.title} | Spotlight</title>
       </Helmet>
 
       <main className="main">
         <div className="page-title">
           <Breadcrumbs />
           <div className="title-wrapper">
-            <h1>{post.title}</h1>
+            <h1>{item.title}</h1>
           </div>
         </div>
 
@@ -120,7 +120,7 @@ const BlogDetails = () => {
               <section className="blog-details section">
                 <div className="container" data-aos="fade-up">
                   <article className="article">
-                    {/* Hero Image */}
+                    {/* Hero Image / Thumbnail */}
                     <div
                       className="hero-img"
                       style={{
@@ -131,8 +131,12 @@ const BlogDetails = () => {
                       data-aos="zoom-in"
                     >
                       <img
-                        src={post.img || post.thumbnail}
-                        alt={post.title}
+                        src={
+                          isVideo
+                            ? getThumbnail(item.video_url) // ✅ fixed key
+                            : item.img || item.thumbnail
+                        }
+                        alt={item.title}
                         className="img-fluid"
                         style={{
                           width: "100%",
@@ -180,17 +184,16 @@ const BlogDetails = () => {
                           <h4>{author?.name}</h4>
                           <p style={{ margin: 0 }}>
                             <i className="bi bi-calendar3"></i>{" "}
-                            {formatDate(post.date)}
+                            {formatDate(item.date || item.created_at)}
                           </p>
                         </div>
                       </div>
 
                       {/* CKEditor content */}
-                      {post.desc.split(/<\/?p>/).map((line, idx) => {
+                      {item.desc?.split(/<\/?p>/).map((line, idx) => {
                         const trimmed = line.trim();
                         if (!trimmed) return null;
                         if (trimmed.includes("<img")) {
-                          // Extract src from img tag
                           const srcMatch =
                             trimmed.match(/src=["']([^"']+)["']/);
                           const src = srcMatch ? srcMatch[1] : null;
@@ -198,7 +201,7 @@ const BlogDetails = () => {
                             <img
                               key={idx}
                               src={src}
-                              alt={post.title}
+                              alt={item.title}
                               style={{
                                 width: "100%",
                                 height: "500px",

@@ -16,10 +16,15 @@ Route::post('/login', [AuthController::class, 'login']);
 // ----------------------
 // Public content routes
 // ----------------------
-Route::get('/posts', [PostController::class, 'index']);          // Public: list posts
-Route::get('/posts/{id}', [PostController::class, 'show']);      // Public: single post
-Route::get('/categories', [CategoryController::class, 'index']); // Public: list categories
+Route::get('/posts', [PostController::class, 'index']);             // Public: list posts
+Route::get('/posts/{id}', [PostController::class, 'show']);         // Public: single post
+
+Route::get('/categories', [CategoryController::class, 'index']);    // Public: list categories
 Route::get('/categories/{id}', [CategoryController::class, 'show']); // Public: single category
+
+Route::get('/videos', [VideoController::class, 'index']);           // ✅ Public: list videos
+Route::get('/videos/{id}', [VideoController::class, 'show']);       // ✅ Public: single video
+
 
 // ----------------------
 // Protected routes
@@ -44,11 +49,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/posts/{id}', [PostController::class, 'update']);
     Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
-    // Videos CRUD (all protected)
-    Route::get('/videos', [VideoController::class, 'index']);
+    // Videos CRUD (excluding index/show since public)
     Route::post('/videos', [VideoController::class, 'store']);
     Route::put('/videos/{id}', [VideoController::class, 'update']);
     Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
     Route::delete('/videos/clear', [VideoController::class, 'clearAll']);
-    Route::get('/videos/{id}', [VideoController::class, 'show']);
 });

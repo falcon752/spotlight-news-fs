@@ -1,13 +1,13 @@
+// src/components/VideoCard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
-import { authors } from "../store/mockData";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
 const VideoCard = ({ video }) => {
-  const author = authors.find((a) => a.id === video.authorId);
+  const author = video.author; // coming directly from backend
 
   // Convert YouTube URL to embed URL
   const getEmbedUrl = (url) => {
@@ -27,8 +27,25 @@ const VideoCard = ({ video }) => {
     }
   };
 
+  // Generate thumbnail from YouTube link
+  const getThumbnail = (url) => {
+    try {
+      if (url.includes("youtu.be")) {
+        const videoId = url.split("youtu.be/")[1].split("?")[0];
+        return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      }
+      if (url.includes("watch?v=")) {
+        const videoId = new URL(url).searchParams.get("v");
+        return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+      }
+      return "/default-thumbnail.jpg"; // fallback
+    } catch (e) {
+      return "/default-thumbnail.jpg";
+    }
+  };
+
   const openVideo = () => {
-    const embedUrl = getEmbedUrl(video.videoUrl);
+    const embedUrl = getEmbedUrl(video.video_url);
 
     MySwal.fire({
       title: video.title,
@@ -60,7 +77,11 @@ const VideoCard = ({ video }) => {
           style={{ position: "relative", cursor: "pointer" }}
           onClick={openVideo}
         >
-          <img src={video.thumbnail} alt={video.title} className="img-fluid" />
+          <img
+            src={getThumbnail(video.video_url)}
+            alt={video.title}
+            className="img-fluid"
+          />
           <div
             style={{
               position: "absolute",
@@ -78,9 +99,8 @@ const VideoCard = ({ video }) => {
 
         <p className="post-category">Videos</p>
 
-        {/* Clicking title navigates to BlogDetails */}
         <Link
-          to={`/category/videos/${video.slug}`}
+          to={`/videos/${video.slug}`}
           style={{ textDecoration: "none", color: "inherit" }}
         >
           <h2 className="title">{video.title}</h2>
@@ -88,7 +108,7 @@ const VideoCard = ({ video }) => {
 
         <div className="d-flex align-items-center">
           <img
-            src={author?.avatar}
+            src={author?.avatar || "/default-avatar.png"}
             alt={author?.name}
             className="img-fluid post-author-img flex-shrink-0"
           />
