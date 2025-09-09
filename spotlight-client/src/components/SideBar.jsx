@@ -1,19 +1,30 @@
-// components/Sidebar.jsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usePostStore } from "../store/usePostStore";
+import { useVideoStore } from "../store/useVideoStore";
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = React.useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [dynamicCategories, setDynamicCategories] = useState([]);
 
   const { categories, posts, fetchCategories, fetchPosts, loading } = usePostStore();
+  const { videos, fetchVideos } = useVideoStore();
 
-  // Fetch categories and posts on mount
+  // Fetch data on mount
   useEffect(() => {
     if (!categories || categories.length === 0) fetchCategories();
     if (!posts || posts.length === 0) fetchPosts();
-  }, [categories, posts, fetchCategories, fetchPosts]);
+    fetchVideos();
+  }, [categories, posts, fetchCategories, fetchPosts, fetchVideos]);
+
+  // Filter out static categories for dynamic display
+  useEffect(() => {
+    const filtered = categories.filter(
+      (cat) => !["videos"].includes(cat.slug)
+    );
+    setDynamicCategories(filtered);
+  }, [categories]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -23,7 +34,13 @@ const Sidebar = () => {
   };
 
   const getCategoryCount = (catId) => {
-    return posts.filter((p) => p.categories?.some((c) => c.id === catId)).length;
+    const postCount = posts.filter((p) =>
+      p.categories?.some((c) => c.id === catId)
+    ).length;
+
+    const videoCount = videos.filter((v) => v.categoryId === catId).length;
+
+    return postCount + videoCount;
   };
 
   if (loading) return <p>Loading sidebar...</p>;
@@ -52,9 +69,10 @@ const Sidebar = () => {
           <div className="categories-widget widget-item">
             <h3 className="widget-title">Categories</h3>
             <ul className="mt-3">
-              {categories.map((cat) => {
+              {/* Dynamic categories */}
+              {dynamicCategories.map((cat) => {
                 const count = getCategoryCount(cat.id);
-                if (count === 0) return null; // skip categories with no posts
+                if (count === 0) return null; // skip categories with no posts/videos
                 return (
                   <li key={cat.id}>
                     <Link to={`/category/${cat.slug}`}>
@@ -63,6 +81,13 @@ const Sidebar = () => {
                   </li>
                 );
               })}
+
+              {/* Static Videos category */}
+              <li>
+                <Link to="/videos">
+                  Videos <span>({videos.length})</span>
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

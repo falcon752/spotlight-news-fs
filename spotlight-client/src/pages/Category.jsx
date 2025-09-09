@@ -7,10 +7,30 @@ import VideoCard from "../components/VideoCard";
 import VideoModal from "../components/VideoModal";
 import { Helmet } from "react-helmet-async";
 import NotFound from "./404";
+import { useVideoStore } from "../store/useVideoStore";
 
 export default function CategoryPage() {
   const { categorySlug } = useParams();
-  const { categories, posts, fetchCategories, fetchPosts, loading } = usePostStore();
+  const { categories, posts, fetchCategories, fetchPosts, loading } =
+    usePostStore();
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    // Month-first format
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   const [category, setCategory] = useState(null);
   const [items, setItems] = useState([]);
@@ -67,9 +87,13 @@ export default function CategoryPage() {
             <nav aria-label="breadcrumb">
               <ol className="breadcrumb">
                 <li className="breadcrumb-item">
-                  <Link to="/"><i className="bi bi-house"></i> Home</Link>
+                  <Link to="/">
+                    <i className="bi bi-house"></i> Home
+                  </Link>
                 </li>
-                <li className="breadcrumb-item active current">{category.name}</li>
+                <li className="breadcrumb-item active current">
+                  {category.name}
+                </li>
               </ol>
             </nav>
           </div>
@@ -82,7 +106,11 @@ export default function CategoryPage() {
           <div className="row">
             <div className="col-lg-8">
               <section className="category-postst section">
-                <div className="container" data-aos="fade-up" data-aos-delay="100">
+                <div
+                  className="container"
+                  data-aos="fade-up"
+                  data-aos-delay="100"
+                >
                   <div className="row gy-4">
                     {items.length > 0 ? (
                       isVideoCategory ? (
@@ -101,13 +129,20 @@ export default function CategoryPage() {
                               <article>
                                 <Link
                                   to={`/category/${category.slug}/${post.slug}`}
-                                  style={{ textDecoration: "none", color: "inherit" }}
+                                  style={{
+                                    textDecoration: "none",
+                                    color: "inherit",
+                                  }}
                                 >
                                   <div className="post-img">
                                     <img src={post.img} alt={post.title} />
                                   </div>
-                                  <p className="post-category">{category.name}</p>
-                                  <h2 className="title">{stripHtml(post.title)}</h2>
+                                  <p className="post-category">
+                                    {category.name}
+                                  </p>
+                                  <h2 className="title">
+                                    {stripHtml(post.title)}
+                                  </h2>
                                   <div className="d-flex align-items-center">
                                     <img
                                       src={author?.avatar}
@@ -115,8 +150,13 @@ export default function CategoryPage() {
                                       className="post-author-img"
                                     />
                                     <div>
-                                      <p className="post-author">{author?.name}</p>
-                                      <p className="post-date">{post.date}</p>
+                                      <p className="post-author">
+                                        {author?.name}
+                                      </p>
+                                      <p className="post-date">
+                                        {formatDate(post.date)}
+                                      </p>{" "}
+                                      {/* <-- formatted date */}
                                     </div>
                                   </div>
                                 </Link>
@@ -138,7 +178,10 @@ export default function CategoryPage() {
         </div>
       </main>
 
-      <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
+      <VideoModal
+        video={selectedVideo}
+        onClose={() => setSelectedVideo(null)}
+      />
     </div>
   );
 }

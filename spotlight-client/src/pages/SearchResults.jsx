@@ -1,9 +1,9 @@
-// pages/SearchResults.jsx
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { posts, categories, authors, videos } from "../store/mockData";
-import VideoCard from "../components/VideoCard"; // ✅ Import your VideoCard
+import VideoCard from "../components/VideoCard";
+import { usePostStore } from "../store/usePostStore";
+import { useVideoStore } from "../store/useVideoStore";
 
 function useQuery() {
   return new URLSearchParams(useLocation().search);
@@ -13,36 +13,64 @@ const SearchResults = () => {
   const query = useQuery();
   const searchTerm = query.get("query")?.toLowerCase() || "";
 
+  const { posts, fetchPosts, categories } = usePostStore();
+  const { videos, fetchVideos } = useVideoStore();
+
+  // Fetch posts and videos on mount
+  useEffect(() => {
+    fetchPosts();
+    fetchVideos();
+  }, [fetchPosts, fetchVideos]);
+
+  // Date formatter: show hours/minutes for today, else show full date
+const formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMinutes / 60);
+
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  // Month first format: Sep 7, 2025
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+
   // Filter Posts
   const filteredPosts = useMemo(() => {
     if (!searchTerm) return [];
     return posts.filter((post) => {
       const category = categories.find((c) => c.id === post.categoryId);
-      const author = authors.find((a) => a.id === post.authorId);
+      const author = post.author;
       return (
         post.title.toLowerCase().includes(searchTerm) ||
         post.desc.toLowerCase().includes(searchTerm) ||
-        category?.name.toLowerCase().includes(searchTerm) ||
-        author?.name.toLowerCase().includes(searchTerm)
+        category?.name?.toLowerCase().includes(searchTerm) ||
+        author?.name?.toLowerCase().includes(searchTerm)
       );
     });
-  }, [searchTerm]);
+  }, [searchTerm, posts, categories]);
 
   // Filter Videos
   const filteredVideos = useMemo(() => {
     if (!searchTerm) return [];
     return videos.filter((video) => {
       const category = categories.find((c) => c.id === video.categoryId);
-      const author = authors.find((a) => a.id === video.authorId);
+      const author = video.author;
       return (
         video.title.toLowerCase().includes(searchTerm) ||
-        category?.name.toLowerCase().includes(searchTerm) ||
-        author?.name.toLowerCase().includes(searchTerm)
+        category?.name?.toLowerCase().includes(searchTerm) ||
+        author?.name?.toLowerCase().includes(searchTerm)
       );
     });
-  }, [searchTerm]);
+  }, [searchTerm, videos, categories]);
 
-  // Merge results
   const allResults = [...filteredPosts, ...filteredVideos];
 
   const pageTitle = searchTerm
@@ -83,7 +111,7 @@ const SearchResults = () => {
             {/* Render Posts */}
             {filteredPosts.map((post) => {
               const category = categories.find((c) => c.id === post.categoryId);
-              const author = authors.find((a) => a.id === post.authorId);
+              const author = post.author;
               return (
                 <div className="col-lg-4" key={`post-${post.id}`}>
                   <article>
@@ -102,7 +130,7 @@ const SearchResults = () => {
                       />
                       <div className="post-meta">
                         <p className="post-author">{author?.name}</p>
-                        <p className="post-date"><time dateTime={post.date}>{post.date}</time></p>
+                        <p className="post-date"><time dateTime={post.date}>{formatDate(post.date)}</time></p>
                       </div>
                     </div>
                   </article>
@@ -110,9 +138,9 @@ const SearchResults = () => {
               );
             })}
 
-            {/* Render Videos with SweetAlert (VideoCard) */}
+            {/* Render Videos */}
             {filteredVideos.map((video) => (
-              <VideoCard key={`video-${video.id}`} video={video} />
+              <VideoCard key={`video-${video.id}`} video={video} formatDate={formatDate} />
             ))}
 
             {allResults.length === 0 && (

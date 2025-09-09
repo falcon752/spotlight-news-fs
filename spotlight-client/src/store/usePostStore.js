@@ -5,12 +5,13 @@ export const usePostStore = create((set) => ({
   posts: [],
   post: null,
   categories: [],
-  loading: false,
+  postsLoading: false,
+  categoriesLoading: false,
   error: null,
 
   // Fetch all posts
   fetchPosts: async () => {
-    set({ loading: true, error: null });
+    set({ postsLoading: true, error: null });
     try {
       const data = await axiosClient.get("/posts");
       const posts = data.map((post) => ({
@@ -24,20 +25,20 @@ export const usePostStore = create((set) => ({
                 : null,
             }
           : null,
-        date: post.created_at, // use created_at instead of date
+        date: post.created_at, // normalize date
       }));
       set({ posts });
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching posts:", err);
       set({ error: err.message });
     } finally {
-      set({ loading: false });
+      set({ postsLoading: false });
     }
   },
 
   // Fetch a single post by ID
   fetchPostById: async (id) => {
-    set({ loading: true, error: null });
+    set({ postsLoading: true, error: null });
     try {
       const post = await axiosClient.get(`/posts/${id}`);
       set({
@@ -52,28 +53,28 @@ export const usePostStore = create((set) => ({
                   : null,
               }
             : null,
-          date: post.created_at, // use created_at
+          date: post.created_at,
         },
       });
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching post by ID:", err);
       set({ error: err.message });
     } finally {
-      set({ loading: false });
+      set({ postsLoading: false });
     }
   },
 
   // Fetch all categories
   fetchCategories: async () => {
-    set({ loading: true, error: null });
+    set({ categoriesLoading: true, error: null });
     try {
       const categories = await axiosClient.get("/categories");
       set({ categories });
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching categories:", err);
       set({ error: err.message });
     } finally {
-      set({ loading: false });
+      set({ categoriesLoading: false });
     }
   },
 }));

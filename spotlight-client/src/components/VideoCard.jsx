@@ -1,4 +1,3 @@
-// src/components/VideoCard.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -7,9 +6,28 @@ import withReactContent from "sweetalert2-react-content";
 const MySwal = withReactContent(Swal);
 
 const VideoCard = ({ video }) => {
-  const author = video.author; // coming directly from backend
+  const author = video.author;
 
-  // Convert YouTube URL to embed URL
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Unknown";
+
+    const date = new Date(dateStr); // backend UTC
+    const now = new Date();
+
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
   const getEmbedUrl = (url) => {
     try {
       if (url.includes("youtu.be")) {
@@ -21,13 +39,11 @@ const VideoCard = ({ video }) => {
         return `https://www.youtube.com/embed/${videoId}`;
       }
       return url;
-    } catch (e) {
-      console.error("Invalid video URL:", url);
+    } catch {
       return url;
     }
   };
 
-  // Generate thumbnail from YouTube link
   const getThumbnail = (url) => {
     try {
       if (url.includes("youtu.be")) {
@@ -38,8 +54,8 @@ const VideoCard = ({ video }) => {
         const videoId = new URL(url).searchParams.get("v");
         return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
       }
-      return "/default-thumbnail.jpg"; // fallback
-    } catch (e) {
+      return "/default-thumbnail.jpg";
+    } catch {
       return "/default-thumbnail.jpg";
     }
   };
@@ -71,7 +87,6 @@ const VideoCard = ({ video }) => {
   return (
     <div className="col-lg-6">
       <article>
-        {/* Thumbnail opens modal */}
         <div
           className="post-img video-thumb"
           style={{ position: "relative", cursor: "pointer" }}
@@ -114,7 +129,7 @@ const VideoCard = ({ video }) => {
           />
           <div className="post-meta">
             <p className="post-author">{author?.name}</p>
-            <p className="post-date">{video.date}</p>
+            <p className="post-date">{formatDate(video.created_at)}</p>
           </div>
         </div>
       </article>

@@ -1,10 +1,26 @@
-// components/Footer.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BsTwitter, BsFacebook, BsInstagram } from "react-icons/bs";
-import { categories } from "../store/mockData"; // ✅ import categories
+import { usePostStore } from "../store/usePostStore";
+import { useVideoStore } from "../store/useVideoStore";
 
 const Footer = () => {
+  const { categories, fetchCategories } = usePostStore();
+  const { videos, fetchVideos } = useVideoStore();
+  const [dynamicCategories, setDynamicCategories] = useState([]);
+
+  // Fetch categories and videos
+  useEffect(() => {
+    fetchCategories();
+    fetchVideos();
+  }, [fetchCategories, fetchVideos]);
+
+  // Filter dynamic categories (exclude "videos")
+  useEffect(() => {
+    const filtered = categories.filter((cat) => cat.slug !== "videos");
+    setDynamicCategories(filtered);
+  }, [categories]);
+
   return (
     <footer id="footer" className="footer">
       <div className="container footer-top">
@@ -25,7 +41,7 @@ const Footer = () => {
               </p>
             </div>
 
-            {/* ✅ Social Links */}
+            {/* Social Links */}
             <div className="social-links d-flex mt-4">
               <a
                 href="https://web.facebook.com/profile.php?id=61559480481152"
@@ -65,40 +81,30 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* ✅ Quick Access */}
+          {/* Quick Access */}
           <div className="col-lg-2 col-md-3 footer-links">
             <h4>Quick Access</h4>
             <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <Link to="/donate">Donate</Link>
-              </li>
-              <li>
-                <Link to="/contact">Contact</Link>
-              </li>
+              <li><Link to="/">Home</Link></li>
+              <li><Link to="/donate">Donate</Link></li>
+              <li><Link to="/contact">Contact</Link></li>
             </ul>
           </div>
 
-          {/* ✅ Categories */}
+          {/* Categories */}
           <div className="col-lg-2 col-md-3 footer-links">
             <h4>Categories</h4>
             <ul>
+              {/* Dynamic categories */}
+              {dynamicCategories.map((cat) => (
+                <li key={cat.id}>
+                  <Link to={`/category/${cat.slug}`}>{cat.name}</Link>
+                </li>
+              ))}
+
+              {/* Static Videos link */}
               <li>
-                <Link to="/category/news">News</Link>
-              </li>
-              <li>
-                <Link to="/category/impacts">Impact</Link>
-              </li>
-              <li>
-                <Link to="/category/investigation">Investigations</Link>
-              </li>
-              <li>
-                <Link to="/category/fact-check">Fact-check</Link>
-              </li>
-              <li>
-                <Link to="/category/lifestyle">Lifestyle</Link>
+                <Link to="/videos">Videos</Link>
               </li>
             </ul>
           </div>

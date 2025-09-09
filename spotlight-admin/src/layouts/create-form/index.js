@@ -274,7 +274,8 @@ function CreateForm() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  {isEditing ? "Edit Content" : "Create New Content"} {/* ✅ dynamic title */}
+                  {isEditing ? "Edit Content" : "Create New Content"}{" "}
+                  {/* ✅ dynamic title */}
                 </MDTypography>
               </MDBox>
 
@@ -344,7 +345,21 @@ function CreateForm() {
                           new CustomUploadAdapter(loader);
                       }}
                       onChange={(event, editor) => setContent(editor.getData())}
+                      onError={(error, { willEditorRestart }) => {
+                        // Suppress harmless errors
+                        if (
+                          error?.message?.includes("view-position-before-root")
+                        ) {
+                          console.warn(
+                            "CKEditor harmless error suppressed:",
+                            error.message
+                          );
+                          return;
+                        }
+                        throw error; // Let other errors bubble
+                      }}
                     />
+
                     {errors.content && (
                       <span style={{ color: "red", fontSize: "14px" }}>
                         {errors.content}
@@ -486,7 +501,8 @@ function CreateForm() {
                       color="info"
                       fullWidth
                     >
-                      {isEditing ? "Update" : "Submit"} {/* ✅ dynamic button */}
+                      {isEditing ? "Update" : "Submit"}{" "}
+                      {/* ✅ dynamic button */}
                     </MDButton>
                     {!isEditing && (
                       <MDButton

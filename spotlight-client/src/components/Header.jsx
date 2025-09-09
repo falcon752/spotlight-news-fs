@@ -51,8 +51,11 @@ const Header = () => {
       <div className="container-fluid container-xl position-relative">
         <div className="top-row d-flex align-items-center justify-content-between">
           <NavLink to="/" className="logo d-flex align-items-end">
-            <h1 className="sitename">Spotlight</h1>
-            <span>.</span>
+            <img
+              src="/assets/img/spotlight.png"
+              alt="Spotlight"
+              style={{ transform: "scale(2)", transformOrigin: "left center" }}
+            />
           </NavLink>
 
           <div className="d-flex align-items-center">

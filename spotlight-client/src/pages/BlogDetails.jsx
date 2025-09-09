@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { usePostStore } from "../store/usePostStore";
 import { useVideoStore } from "../store/useVideoStore";
-import { getThumbnail, getEmbedUrl } from "../utils/videoUtils"; // ✅ utils
+import { getThumbnail, getEmbedUrl } from "../utils/videoUtils";
 
 const MySwal = withReactContent(Swal);
 
@@ -73,9 +73,9 @@ const BlogDetails = () => {
     });
   };
 
-  const openVideo = () => {
-    if (!item.video_url) return; // ✅ fixed key
-    const embedUrl = getEmbedUrl(item.video_url);
+  const openVideo = (videoUrl) => {
+    if (!videoUrl) return;
+    const embedUrl = getEmbedUrl(videoUrl);
 
     MySwal.fire({
       title: item.title,
@@ -127,13 +127,13 @@ const BlogDetails = () => {
                         position: "relative",
                         cursor: isVideo ? "pointer" : "default",
                       }}
-                      onClick={isVideo ? openVideo : undefined}
+                      onClick={isVideo ? () => openVideo(item.video_url) : undefined}
                       data-aos="zoom-in"
                     >
                       <img
                         src={
                           isVideo
-                            ? getThumbnail(item.video_url) // ✅ fixed key
+                            ? getThumbnail(item.video_url)
                             : item.img || item.thumbnail
                         }
                         alt={item.title}
@@ -189,13 +189,14 @@ const BlogDetails = () => {
                         </div>
                       </div>
 
-                      {/* CKEditor content */}
-                      {item.desc?.split(/<\/?p>/).map((line, idx) => {
+                      {/* CKEditor content with inline images & oembed videos */}
+                      {item.desc?.split(/<\/?p>|<\/?figure>/).map((line, idx) => {
                         const trimmed = line.trim();
                         if (!trimmed) return null;
+
+                        // Handle <img>
                         if (trimmed.includes("<img")) {
-                          const srcMatch =
-                            trimmed.match(/src=["']([^"']+)["']/);
+                          const srcMatch = trimmed.match(/src=["']([^"']+)["']/);
                           const src = srcMatch ? srcMatch[1] : null;
                           return src ? (
                             <img
@@ -211,6 +212,50 @@ const BlogDetails = () => {
                             />
                           ) : null;
                         }
+
+                        // Handle <oembed> videos
+                        if (trimmed.includes("<oembed")) {
+                          const urlMatch = trimmed.match(/url=["']([^"']+)["']/);
+                          const videoUrl = urlMatch ? urlMatch[1] : null;
+                          if (!videoUrl) return null;
+
+                          return (
+                            <div
+                              key={idx}
+                              style={{
+                                position: "relative",
+                                cursor: "pointer",
+                                margin: "20px 0",
+                              }}
+                              onClick={() => openVideo(videoUrl)}
+                            >
+                              <img
+                                src={getThumbnail(videoUrl)}
+                                alt="Video Thumbnail"
+                                style={{
+                                  width: "100%",
+                                  height: "500px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "50%",
+                                  left: "50%",
+                                  transform: "translate(-50%, -50%)",
+                                  fontSize: "48px",
+                                  color: "white",
+                                  pointerEvents: "none",
+                                }}
+                              >
+                                ►
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        // Fallback: plain text
                         return <p key={idx}>{stripHtml(trimmed)}</p>;
                       })}
                     </div>

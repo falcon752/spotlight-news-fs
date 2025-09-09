@@ -30,14 +30,16 @@ class VideoController extends Controller
             'video_url' => 'required|url',
         ]);
 
-        $video = Video::create([
-            'author_id' => Auth::id(),
-            'title' => $request->title,
-            'desc' => $request->desc,
-            'video_url' => $request->video_url,
-            'type' => 'video',
-            'date' => now(),
-        ]);
+    // Store a new video
+    $video = Video::create([
+        'author_id' => Auth::id(),
+        'title' => $request->title,
+        'desc' => $request->desc,
+        'video_url' => $request->video_url,
+        'type' => 'video',
+        'date' => $request->date,
+    ]);
+
 
         return response()->json($video, 201);
     }

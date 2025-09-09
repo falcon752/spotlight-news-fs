@@ -4,10 +4,12 @@ import axiosClient, { BASE_URL } from "../api/axiosClient";
 
 export const useVideoStore = create((set) => ({
   videos: [],
-  loading: false,
+  videosLoading: false,
+  error: null,
 
+  // Fetch all videos
   fetchVideos: async () => {
-    set({ loading: true });
+    set({ videosLoading: true, error: null });
     try {
       const res = await axiosClient.get("/videos");
 
@@ -21,13 +23,44 @@ export const useVideoStore = create((set) => ({
                 : null,
             }
           : null,
-        date: video.created_at, // normalize date like posts
+        date: video.created_at, // use DB created_at directly
       }));
 
-      set({ videos, loading: false });
+      set({ videos });
     } catch (err) {
       console.error("Error fetching videos:", err);
-      set({ loading: false, videos: [] });
+      set({ videos: [], error: err.message });
+    } finally {
+      set({ videosLoading: false });
+    }
+  },
+
+  // Fetch a single video by ID
+  fetchVideoById: async (id) => {
+    set({ videosLoading: true, error: null });
+    try {
+      const video = await axiosClient.get(`/videos/${id}`);
+      set({
+        videos: [
+          {
+            ...video,
+            author: video.author
+              ? {
+                  ...video.author,
+                  avatar: video.author.avatar
+                    ? `${BASE_URL}/storage/${video.author.avatar}`
+                    : null,
+                }
+              : null,
+            date: video.created_at,
+          },
+        ],
+      });
+    } catch (err) {
+      console.error("Error fetching video by ID:", err);
+      set({ videos: [], error: err.message });
+    } finally {
+      set({ videosLoading: false });
     }
   },
 }));
