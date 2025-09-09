@@ -25,89 +25,44 @@ const Footer = () => {
     <footer id="footer" className="footer">
       <div className="container footer-top">
         <div className="row gy-4">
-          {/* About Section */}
-          <div className="col-lg-4 col-md-6 footer-about">
-            <a href="/" className="logo d-flex align-items-center">
-              <span className="sitename">Spotlight</span>
+
+          {/* Left Column: Logo + Socials */}
+          <div className="col-lg-4 col-md-12 footer-about text-center mb-4">
+            <a href="/" className="logo d-block mb-3">
+              <img src="/assets/img/spotlight.png" alt="Spotlight" className="footer-logo" />
             </a>
-            <div className="footer-contact pt-3">
-              <p>A108 Adam Street</p>
-              <p>New York, NY 535022</p>
-              <p className="mt-3">
-                <strong>Phone:</strong> <span>+1 5589 55488 55</span>
-              </p>
-              <p>
-                <strong>Email:</strong> <span>info@example.com</span>
-              </p>
-            </div>
 
-            {/* Social Links */}
-            <div className="social-links d-flex mt-4">
-              <a
-                href="https://web.facebook.com/profile.php?id=61559480481152"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
-                <BsFacebook />
-              </a>
-
-              <a
-                href="https://x.com/Spotlightngr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
-                <BsTwitter />
-              </a>
-
-              <a
-                href="https://www.instagram.com/spotlightngr/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
-                <BsInstagram />
-              </a>
-
-              <a
-                href="https://www.tiktok.com/search?q=Spotlightngr&t=1720187038652"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
-                <i className="bi bi-tiktok"></i>
-              </a>
+            <div className="social-links d-flex justify-content-center mt-3">
+              <a href="https://web.facebook.com/profile.php?id=61559480481152" target="_blank" rel="noopener noreferrer"><BsFacebook /></a>
+              <a href="https://x.com/Spotlightngr" target="_blank" rel="noopener noreferrer"><BsTwitter /></a>
+              <a href="https://www.instagram.com/spotlightngr/" target="_blank" rel="noopener noreferrer"><BsInstagram /></a>
+              <a href="https://www.tiktok.com/search?q=Spotlightngr&t=1720187038652" target="_blank" rel="noopener noreferrer"><i className="bi bi-tiktok"></i></a>
             </div>
           </div>
 
-          {/* Quick Access */}
-          <div className="col-lg-2 col-md-3 footer-links">
+          {/* Middle Column: Quick Access */}
+          <div className="col-lg-4 col-md-6 footer-links-card mb-4">
             <h4>Quick Access</h4>
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/donate">Donate</Link></li>
               <li><Link to="/contact">Contact</Link></li>
+              <li><Link to="/videos">Videos</Link></li>
             </ul>
           </div>
 
-          {/* Categories */}
-          <div className="col-lg-2 col-md-3 footer-links">
+          {/* Right Column: Categories */}
+          <div className="col-lg-4 col-md-6 footer-links-card mb-4">
             <h4>Categories</h4>
             <ul>
-              {/* Dynamic categories */}
               {dynamicCategories.map((cat) => (
                 <li key={cat.id}>
                   <Link to={`/category/${cat.slug}`}>{cat.name}</Link>
                 </li>
               ))}
-
-              {/* Static Videos link */}
-              <li>
-                <Link to="/videos">Videos</Link>
-              </li>
             </ul>
           </div>
+
         </div>
       </div>
 

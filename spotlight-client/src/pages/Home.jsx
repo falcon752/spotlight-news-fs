@@ -238,10 +238,10 @@ const Home = () => {
                       </Link>
                     </h3>
                     <div className="post-meta">
-                      <span className="read-time">{post.readTime}</span>
+                      {/* <span className="read-time">{post.readTime}</span> */}
                       <span className="post-date">{post.formattedDate}</span>
                     </div>
-                    <p>{truncateWords(post.desc, 10)}</p>
+                    {/* <p>{truncateWords(post.desc, 10)}</p> */}
                   </div>
                 </article>
               </div>

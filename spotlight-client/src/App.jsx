@@ -12,7 +12,8 @@ import NotFound from "./pages/404";
 import SearchResults from "./pages/SearchResults";
 import Donate from "./pages/Donate";
 import Loader from "./components/Loader"; 
-import VideosPage from "./pages/VideoPage"; // <-- NEW import
+import VideosPage from "./pages/VideoPage";
+
 
 function App() {
   useTemplateFeatures();

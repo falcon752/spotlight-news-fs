@@ -6,6 +6,8 @@ use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\VideoController;
+use App\Http\Controllers\ContactController;
+
 
 // ----------------------
 // Public authentication
@@ -24,6 +26,8 @@ Route::get('/categories/{id}', [CategoryController::class, 'show']); // Public: 
 
 Route::get('/videos', [VideoController::class, 'index']);           // ✅ Public: list videos
 Route::get('/videos/{id}', [VideoController::class, 'show']);       // ✅ Public: single video
+
+Route::post('/contact', [ContactController::class, 'send']);
 
 
 // ----------------------

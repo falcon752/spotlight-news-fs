@@ -16,6 +16,7 @@ const Header = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { categories, fetchCategories } = usePostStore();
   const [dynamicCategories, setDynamicCategories] = useState([]);
+  const [isSticky, setIsSticky] = useState(false);
 
   // Fetch dynamic categories
   useEffect(() => {
@@ -23,7 +24,6 @@ const Header = () => {
       if (!categories || categories.length === 0) {
         await fetchCategories();
       }
-      // Filter out static categories to only show dynamic ones
       const filtered = categories.filter(
         (cat) => !["videos", "contact", "donate", "home"].includes(cat.slug)
       );
@@ -31,6 +31,15 @@ const Header = () => {
     };
     loadCategories();
   }, [categories, fetchCategories]);
+
+  // Sticky nav on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsSticky(window.scrollY > 50); // adjust threshold if needed
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -113,11 +122,10 @@ const Header = () => {
         </div>
       </div>
 
-      <div className="nav-wrap">
+      <div className={`nav-wrap ${isSticky ? "sticky" : ""}`}>
         <div className="container d-flex justify-content-center position-relative">
           <nav id="navmenu" className="navmenu">
             <ul>
-              {/* Static links */}
               <li>
                 <NavLink
                   to="/"
@@ -151,7 +159,6 @@ const Header = () => {
                 </ul>
               </li>
 
-              {/* Static links */}
               <li>
                 <NavLink
                   to="/videos"
