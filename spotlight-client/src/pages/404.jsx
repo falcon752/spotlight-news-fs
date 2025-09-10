@@ -1,6 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function NotFound() {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    const query = searchTerm.trim();
+    if (query) {
+      navigate(`/search-results?query=${encodeURIComponent(query)}`);
+    }
+  };
+
   return (
     <main className="main">
       {/* Error 404 Section */}
@@ -40,18 +52,21 @@ export default function NotFound() {
               changed, or is temporarily unavailable.
             </p>
 
+            {/* Functional Search Box */}
             <div
               className="search-box mb-4"
               data-aos="fade-up"
               data-aos-delay="600"
             >
-              <form action="#" className="search-form">
+              <form className="search-form" onSubmit={handleSearchSubmit}>
                 <div className="input-group">
                   <input
                     type="text"
                     className="form-control"
                     placeholder="Search for pages..."
                     aria-label="Search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                   <button className="btn search-btn" type="submit">
                     <i className="bi bi-search"></i>

@@ -60,63 +60,55 @@ class PostController extends Controller
         return response()->json($post, 201);
     }
 
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'upload' => 'required|image|mimes:jpg,jpeg,png,svg|max:2048',
+        ]);
 
-public function uploadImage(Request $request)
-{
-    $request->validate([
-        'upload' => 'required|image|mimes:jpg,jpeg,png,svg|max:2048',
-    ]);
+        $file = $request->file('upload');
+        $path = $file->store('posts/inline', 'public');
 
-    $file = $request->file('upload');
-    $path = $file->store('posts/inline', 'public');
+        $url = asset('storage/' . $path);
 
-    $url = asset('storage/' . $path);
-
-    // CKEditor expects JSON with 'url'
-    return response()->json([
-        'url' => $url,
-    ]);
-}
-
-
-
+        return response()->json(['url' => $url]);
+    }
 
     // Update existing post
-    public function update(Request $request, $id)
-    {
-        $post = Post::findOrFail($id);
+public function update(Request $request, $id)
+{
+    $post = Post::findOrFail($id);
 
-        $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'desc' => 'sometimes|required|string',
-            'categories' => 'sometimes|array',
-            'categories.*' => 'exists:categories,id',
-            'img' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
-            'date' => 'nullable|date',
-        ]);
+    $request->validate([
+        'title' => 'sometimes|required|string|max:255',
+        'desc' => 'sometimes|required|string',
+        'categories' => 'sometimes|array',
+        'categories.*' => 'exists:categories,id',
+        'img' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:2048',
+        'date' => 'nullable|date',
+    ]);
 
-        if ($request->hasFile('img')) {
-            if ($post->img) {
-                Storage::disk('public')->delete($post->img);
-            }
-            $post->img = $request->file('img')->store('posts', 'public');
-        }
-
-        $post->update([
-            'title' => $request->title ?? $post->title,
-            'desc' => $request->desc ?? $post->desc,
-            'author_id' => auth()->id(),
-            'date' => $request->date ?? $post->date,
-        ]);
-
-        if ($request->has('categories')) {
-            $post->categories()->sync($request->categories);
-        }
-
-        $post->load(['categories', 'author']);
-
-        return response()->json($post);
+    // Handle image
+    if ($request->hasFile('img')) {
+        if ($post->img) Storage::disk('public')->delete($post->img);
+        $post->img = $request->file('img')->store('posts', 'public');
     }
+
+    $post->title = $request->title ?? $post->title;
+    $post->desc = $request->desc ?? $post->desc;
+    $post->date = $request->date ?? $post->date;
+    $post->author_id = auth()->id();
+    $post->save();
+
+    $categories = $request->input('categories', []);
+    if (is_array($categories)) {
+        $post->categories()->sync($categories);
+    }
+
+    $post->load(['categories', 'author']);
+    return response()->json($post);
+}
+
 
     // Delete a post
     public function destroy($id)
@@ -133,17 +125,16 @@ public function uploadImage(Request $request)
         return response()->json(['message' => 'Post deleted successfully']);
     }
 
-
+    // Clear all posts
     public function clearAll()
     {
         foreach (Post::all() as $post) {
             if ($post->img) {
-                \Storage::disk('public')->delete($post->img);
+                Storage::disk('public')->delete($post->img);
             }
-            $post->delete(); // ⚡ This will also cascade delete pivot rows
+            $post->delete(); // cascades pivot table
         }
 
         return response()->json(['message' => 'All posts deleted successfully']);
     }
-
 }

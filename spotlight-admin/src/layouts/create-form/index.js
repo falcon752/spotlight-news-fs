@@ -155,9 +155,28 @@ function CreateForm() {
     return Object.keys(temp).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
+  if (!validate()) {
+    Swal.fire({
+      icon: "error",
+      title: "Validation Error",
+      text: "Please fix the errors before submitting.",
+    });
+    return;
+  }
+
+  if (!author) {
+    Swal.fire({
+      icon: "warning",
+      title: "Not Logged In",
+      text: "You must be logged in to create content.",
+    });
+    return;
+  }
+
+  try {
     if (isEditing) {
       if (contentType === "video") {
         await updateVideo(editingItem.id, {
@@ -172,89 +191,69 @@ function CreateForm() {
           title,
           desc: content,
           categories: selectedCategories,
-          primaryImage: primaryImageFile || editingItem.img_url,
-          author_id: author.id,
+          primaryImage: primaryImageFile instanceof File ? primaryImageFile : null,
+          date: editingItem.date, // optional
         });
       }
 
       Swal.fire({
         icon: "success",
         title: "Updated!",
-        text: `${
-          contentType === "video" ? "Video" : "Post"
-        } updated successfully.`,
+        text: `${contentType === "video" ? "Video" : "Post"} updated successfully.`,
       });
-      navigate(-1);
+
+      navigate(-1); // go back
       return;
     }
 
-    if (!validate()) {
-      Swal.fire({
-        icon: "error",
-        title: "Validation Error",
-        text: "Please fix the errors before submitting.",
+    // CREATE NEW
+    if (contentType === "video") {
+      await createVideo({
+        title,
+        content,
+        videoUrl,
+        authorId: author.id,
+        thumbnail: primaryImageFile,
       });
-      return;
-    }
-
-    if (!author) {
-      Swal.fire({
-        icon: "warning",
-        title: "Not Logged In",
-        text: "You must be logged in to create content.",
-      });
-      return;
-    }
-
-    try {
-      if (contentType === "video") {
-        await createVideo({
-          title,
-          content,
-          videoUrl,
-          authorId: author.id,
-          thumbnail: primaryImageFile,
-        });
-      } else {
-        await createPost({
-          title,
-          content,
-          categories: selectedCategories,
-          primaryImage: primaryImageFile,
-          authorId: author.id,
-          videoUrl: null,
-        });
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Success!",
-        text: `${
-          contentType === "video" ? "Video" : "Post"
-        } created successfully.`,
-        confirmButtonColor: "#3085d6",
-      });
-
-      // Reset form
-      setTitle("");
-      setContent("");
-      setContentType("post");
-      setVideoUrl("");
-      setSelectedCategories([]);
-      setPrimaryImagePreview(null);
-      setPrimaryImageFile(null);
-      setErrors({});
-      if (editorRef.current?.editor) editorRef.current.editor.setData("");
-      localStorage.removeItem("createFormDraft");
-    } catch (err) {
-      console.error("❌ Failed to create:", err.response?.data || err.message);
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: `Error creating ${contentType}. Your draft is saved.`,
+    } else {
+      await createPost({
+        title,
+        desc: content,
+        categories: selectedCategories,
+        primaryImage: primaryImageFile,
+        authorId: author.id,
+        videoUrl: null,
       });
     }
-  };
+
+    Swal.fire({
+      icon: "success",
+      title: "Success!",
+      text: `${contentType === "video" ? "Video" : "Post"} created successfully.`,
+      confirmButtonColor: "#3085d6",
+    });
+
+    // Reset form
+    setTitle("");
+    setContent("");
+    setContentType("post");
+    setVideoUrl("");
+    setSelectedCategories([]);
+    setPrimaryImagePreview(null);
+    setPrimaryImageFile(null);
+    setErrors({});
+    if (editorRef.current?.editor) editorRef.current.editor.setData("");
+    localStorage.removeItem("createFormDraft");
+  } catch (err) {
+    console.error("❌ Failed to submit:", err.response?.data || err.message);
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: `Error submitting ${contentType}. Your draft is saved.`,
+    });
+  }
+};
+
 
   return (
     <DashboardLayout>

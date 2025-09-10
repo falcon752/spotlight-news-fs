@@ -11,6 +11,7 @@ import withReactContent from "sweetalert2-react-content";
 import { usePostStore } from "../store/usePostStore";
 import { useVideoStore } from "../store/useVideoStore";
 import { getThumbnail, getEmbedUrl } from "../utils/videoUtils";
+import ShareDropdown from "../components/ShareDropdown"; // ✅ Correct path
 
 const MySwal = withReactContent(Swal);
 
@@ -127,7 +128,9 @@ const BlogDetails = () => {
                         position: "relative",
                         cursor: isVideo ? "pointer" : "default",
                       }}
-                      onClick={isVideo ? () => openVideo(item.video_url) : undefined}
+                      onClick={
+                        isVideo ? () => openVideo(item.video_url) : undefined
+                      }
                       data-aos="zoom-in"
                     >
                       <img
@@ -144,6 +147,21 @@ const BlogDetails = () => {
                           objectFit: "cover",
                         }}
                       />
+
+                      {/* Share Button */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                        }}
+                      >
+                        <ShareDropdown
+                          url={window.location.href}
+                          title={item.title}
+                        />
+                      </div>
+
                       {isVideo && (
                         <div
                           style={{
@@ -190,74 +208,78 @@ const BlogDetails = () => {
                       </div>
 
                       {/* CKEditor content with inline images & oembed videos */}
-                      {item.desc?.split(/<\/?p>|<\/?figure>/).map((line, idx) => {
-                        const trimmed = line.trim();
-                        if (!trimmed) return null;
+                      {item.desc
+                        ?.split(/<\/?p>|<\/?figure>/)
+                        .map((line, idx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return null;
 
-                        // Handle <img>
-                        if (trimmed.includes("<img")) {
-                          const srcMatch = trimmed.match(/src=["']([^"']+)["']/);
-                          const src = srcMatch ? srcMatch[1] : null;
-                          return src ? (
-                            <img
-                              key={idx}
-                              src={src}
-                              alt={item.title}
-                              style={{
-                                width: "100%",
-                                height: "500px",
-                                objectFit: "cover",
-                                margin: "20px 0",
-                              }}
-                            />
-                          ) : null;
-                        }
-
-                        // Handle <oembed> videos
-                        if (trimmed.includes("<oembed")) {
-                          const urlMatch = trimmed.match(/url=["']([^"']+)["']/);
-                          const videoUrl = urlMatch ? urlMatch[1] : null;
-                          if (!videoUrl) return null;
-
-                          return (
-                            <div
-                              key={idx}
-                              style={{
-                                position: "relative",
-                                cursor: "pointer",
-                                margin: "20px 0",
-                              }}
-                              onClick={() => openVideo(videoUrl)}
-                            >
+                          // Handle <img>
+                          if (trimmed.includes("<img")) {
+                            const srcMatch =
+                              trimmed.match(/src=["']([^"']+)["']/);
+                            const src = srcMatch ? srcMatch[1] : null;
+                            return src ? (
                               <img
-                                src={getThumbnail(videoUrl)}
-                                alt="Video Thumbnail"
+                                key={idx}
+                                src={src}
+                                alt={item.title}
                                 style={{
                                   width: "100%",
                                   height: "500px",
                                   objectFit: "cover",
+                                  margin: "20px 0",
                                 }}
                               />
-                              <div
-                                style={{
-                                  position: "absolute",
-                                  top: "50%",
-                                  left: "50%",
-                                  transform: "translate(-50%, -50%)",
-                                  fontSize: "48px",
-                                  color: "white",
-                                  pointerEvents: "none",
-                                }}
-                              >
-                                ►
-                              </div>
-                            </div>
-                          );
-                        }
+                            ) : null;
+                          }
 
-                        // Fallback: plain text
-                        return <p key={idx}>{stripHtml(trimmed)}</p>;
-                      })}
+                          // Handle <oembed> videos
+                          if (trimmed.includes("<oembed")) {
+                            const urlMatch =
+                              trimmed.match(/url=["']([^"']+)["']/);
+                            const videoUrl = urlMatch ? urlMatch[1] : null;
+                            if (!videoUrl) return null;
+
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  position: "relative",
+                                  cursor: "pointer",
+                                  margin: "20px 0",
+                                }}
+                                onClick={() => openVideo(videoUrl)}
+                              >
+                                <img
+                                  src={getThumbnail(videoUrl)}
+                                  alt="Video Thumbnail"
+                                  style={{
+                                    width: "100%",
+                                    height: "500px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    top: "50%",
+                                    left: "50%",
+                                    transform: "translate(-50%, -50%)",
+                                    fontSize: "48px",
+                                    color: "white",
+                                    pointerEvents: "none",
+                                  }}
+                                >
+                                  ►
+                                </div>
+                              </div>
+                            );
+                          }
+
+                          // Fallback: plain text
+                          return <p key={idx}>{stripHtml(trimmed)}</p>;
+                        })}
                     </div>
                   </article>
                 </div>
