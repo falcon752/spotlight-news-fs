@@ -10,14 +10,19 @@ use Illuminate\Support\Facades\Storage;
 class PostController extends Controller
 {
     // Fetch all posts with authors & categories
-    public function index()
-    {
-        $posts = Post::with(['author', 'categories'])
+public function index()
+{
+$posts = Post::with(['author', 'categories', 'view'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($post) {
+                $post->views_count = $post->view?->views ?? 0;
+                return $post;
+            });
 
-        return response()->json($posts);
-    }
+    return response()->json($posts);
+}
+
 
     // Fetch single post
     public function show($id)

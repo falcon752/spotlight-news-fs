@@ -64,6 +64,16 @@ export const usePostStore = create((set) => ({
     }
   },
 
+
+  // Increment post views
+  incrementPostView: async (postId) => {
+    try {
+      await axiosClient.post(`/posts/${postId}/increment-view`);
+    } catch (err) {
+      console.error("Failed to increment post view:", err);
+    }
+  },
+
   // Fetch all categories
   fetchCategories: async () => {
     set({ categoriesLoading: true, error: null });

@@ -31,6 +31,12 @@ class Post extends Model
     }
 
     // Full URL accessor for frontend
+
+public function view()
+{
+    return $this->hasOne(PostView::class);
+}
+
     public function getImgUrlAttribute()
     {
         if ($this->img) {

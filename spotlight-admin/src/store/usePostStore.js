@@ -7,13 +7,31 @@ const usePostStore = create((set, get) => ({
   error: null,
   editingPost: null,
 
+  // Fetch all posts with their views
   fetchPosts: async () => {
     set({ loading: true, error: null });
     try {
-      const { data } = await axiosAdmin.get("/posts");
+      const { data } = await axiosAdmin.get("/posts"); // backend returns posts with views
       set({ posts: data, loading: false });
     } catch (err) {
-      set({ error: err.message, loading: false });
+      set({ error: err.response?.data?.message || err.message, loading: false });
+    }
+  },
+
+  // Increment post view for a single post
+  incrementView: async (postId) => {
+    try {
+      const { data } = await axiosAdmin.post(`/post-views/increment/${postId}`);
+      // Update local state
+      set({
+        posts: get().posts.map((post) =>
+          post.id === postId ? { ...post, views: data.views } : post
+        ),
+      });
+      return data.views;
+    } catch (err) {
+      console.error("Error incrementing view:", err);
+      return null;
     }
   },
 
@@ -24,7 +42,6 @@ const usePostStore = create((set, get) => ({
       formData.append("title", title);
       formData.append("desc", desc);
       if (date) formData.append("date", date);
-
       categories.forEach((catId) => formData.append("categories[]", catId));
       if (primaryImage instanceof File) formData.append("img", primaryImage);
 
@@ -43,12 +60,8 @@ const usePostStore = create((set, get) => ({
     }
   },
 
-  updatePost: async (
-    id,
-    { title, desc, categories = [], primaryImage, date }
-  ) => {
+  updatePost: async (id, { title, desc, categories = [], primaryImage, date }) => {
     set({ loading: true, error: null });
-
     try {
       const formData = new FormData();
       formData.append("title", title || "");
@@ -62,7 +75,6 @@ const usePostStore = create((set, get) => ({
 
       if (primaryImage instanceof File) formData.append("img", primaryImage);
 
-      // ✅ Use POST + _method=PUT
       const { data } = await axiosAdmin.post(`/posts/${id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         params: { _method: "PUT" },
@@ -88,10 +100,7 @@ const usePostStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await axiosAdmin.delete(`/posts/${id}`);
-      set({
-        posts: get().posts.filter((post) => post.id !== id),
-        loading: false,
-      });
+      set({ posts: get().posts.filter((post) => post.id !== id), loading: false });
     } catch (err) {
       set({
         error: err.response?.data?.message || err.message,
