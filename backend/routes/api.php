@@ -30,8 +30,8 @@ Route::get('/posts/{id}', [PostController::class, 'show']);         // Public: s
 Route::get('/categories', [CategoryController::class, 'index']);    // Public: list categories
 Route::get('/categories/{id}', [CategoryController::class, 'show']); // Public: single category
 
-Route::get('/videos', [VideoController::class, 'index']);           // ✅ Public: list videos
-Route::get('/videos/{id}', [VideoController::class, 'show']);       // ✅ Public: single video
+Route::get('/videos', [VideoController::class, 'index']);           //  Public: list videos
+Route::get('/videos/{id}', [VideoController::class, 'show']);       //  Public: single video
 
 Route::post('/contact', [ContactController::class, 'send']);
 

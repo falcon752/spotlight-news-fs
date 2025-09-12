@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useVideoStore } from "../store/useVideoStore";
 import SideBar from "../components/SideBar";
-import VideoCard from "../components/VideoCard"; // ✅ shared VideoCard
+import VideoCard from "../components/VideoCard"; //  shared VideoCard
 
 export default function VideosPage() {
   const { videos = [], fetchVideos, loading } = useVideoStore();

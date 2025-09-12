@@ -185,7 +185,7 @@ export default function EditUsers() {
                   coloredShadow="info"
                 >
                   <MDTypography variant="h6" color="white">
-                    Login Required
+                    Chief Admin's Login Required
                   </MDTypography>
                 </MDBox>
                 <MDBox pt={3} px={3} pb={3}>

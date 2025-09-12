@@ -1,10 +1,10 @@
-// src/store/useAuthStore.js
 import { create } from "zustand";
 import axiosAdmin from "api/axiosAdmin";
 
 const useAuthStore = create((set) => ({
   author: null,
-  token: localStorage.getItem("token") || null, // <-- restore from storage
+  token: localStorage.getItem("token") || null,
+  isInitializing: true, // <-- loading state for auth init
   authors: [],
   isLoading: false,
   error: null,
@@ -16,23 +16,28 @@ const useAuthStore = create((set) => ({
       axiosAdmin.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       localStorage.setItem("token", token);
     }
-    set({ author, token });
+    set({ author, token, isInitializing: false });
   },
 
-  // Initialize on app start
+  // Initialize auth on app start
   initializeAuth: async () => {
     const token = localStorage.getItem("token");
-    if (token) {
-      axiosAdmin.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      try {
-        const res = await axiosAdmin.get("/me");
-        set({ author: res.data.author, token });
-      } catch (err) {
-        console.error("Auth expired or invalid:", err);
-        localStorage.removeItem("token");
-        delete axiosAdmin.defaults.headers.common["Authorization"];
-        set({ author: null, token: null });
-      }
+
+    if (!token) {
+      set({ author: null, token: null, isInitializing: false });
+      return;
+    }
+
+    axiosAdmin.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    try {
+      const res = await axiosAdmin.get("/me");
+      set({ author: res.data.author, token, isInitializing: false });
+    } catch (err) {
+      console.error("Auth invalid:", err);
+      localStorage.removeItem("token");
+      delete axiosAdmin.defaults.headers.common["Authorization"];
+      set({ author: null, token: null, isInitializing: false });
     }
   },
 

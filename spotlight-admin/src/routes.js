@@ -76,7 +76,7 @@ const routes = [
     route: "/users-table",
     icon: <Icon>people</Icon>,
     component: (
-      <PrivateRoute roles={["Chief Admin"]}>
+      <PrivateRoute roles={["Chief Admin", "Admin"]}>
         <UsersTable />
       </PrivateRoute>
     ),
@@ -88,7 +88,7 @@ const routes = [
     route: "/edit-users", // <-- URL for edit roles
     icon: <Icon>edit</Icon>,
     component: (
-      <PrivateRoute roles={["Chief Admin"]}>
+      <PrivateRoute roles={["Chief Admin", "Admin"]}>
         <EditUsers />
       </PrivateRoute>
     ),
@@ -106,22 +106,26 @@ const routes = [
     ),
   },
   // Public routes
-  {
-    type: "collapse",
-    name: "Sign In",
-    key: "sign-in",
-    icon: <Icon fontSize="small">login</Icon>,
-    route: "/authentication/sign-in",
-    component: <SignIn />,
-  },
-  {
-    type: "collapse",
-    name: "Sign Up",
-    key: "sign-up",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/authentication/sign-up",
-    component: <SignUp />,
-  },
+// Keep sign-in and sign-up routes
+{
+  type: "auth", // not "collapse"
+  name: "Sign In",
+  key: "sign-in",
+  icon: <Icon fontSize="small">login</Icon>,
+  route: "/authentication/sign-in",
+  component: <SignIn />,
+  hidden: true, // <-- custom property
+},
+{
+  type: "auth",
+  name: "Sign Up",
+  key: "sign-up",
+  icon: <Icon fontSize="small">assignment</Icon>,
+  route: "/authentication/sign-up",
+  component: <SignUp />,
+  hidden: true, // <-- custom property
+},
+
 ];
 
 export default routes;

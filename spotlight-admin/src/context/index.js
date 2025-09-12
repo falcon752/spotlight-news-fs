@@ -1,4 +1,3 @@
-
 /**
   This file is used for controlling the global states of the components,
   you can customize the states for the different components here.
@@ -19,33 +18,43 @@ MaterialUI.displayName = "MaterialUIContext";
 function reducer(state, action) {
   switch (action.type) {
     case "MINI_SIDENAV": {
+      localStorage.setItem("miniSidenav", JSON.stringify(action.value));
       return { ...state, miniSidenav: action.value };
     }
     case "TRANSPARENT_SIDENAV": {
+      localStorage.setItem("transparentSidenav", JSON.stringify(action.value));
       return { ...state, transparentSidenav: action.value };
     }
     case "WHITE_SIDENAV": {
+      localStorage.setItem("whiteSidenav", JSON.stringify(action.value));
       return { ...state, whiteSidenav: action.value };
     }
     case "SIDENAV_COLOR": {
+      localStorage.setItem("sidenavColor", action.value);
       return { ...state, sidenavColor: action.value };
     }
     case "TRANSPARENT_NAVBAR": {
+      localStorage.setItem("transparentNavbar", JSON.stringify(action.value));
       return { ...state, transparentNavbar: action.value };
     }
     case "FIXED_NAVBAR": {
+      localStorage.setItem("fixedNavbar", JSON.stringify(action.value));
       return { ...state, fixedNavbar: action.value };
     }
     case "OPEN_CONFIGURATOR": {
+      localStorage.setItem("openConfigurator", JSON.stringify(action.value));
       return { ...state, openConfigurator: action.value };
     }
     case "DIRECTION": {
+      localStorage.setItem("direction", action.value);
       return { ...state, direction: action.value };
     }
     case "LAYOUT": {
+      localStorage.setItem("layout", action.value);
       return { ...state, layout: action.value };
     }
     case "DARKMODE": {
+      localStorage.setItem("darkMode", JSON.stringify(action.value));
       return { ...state, darkMode: action.value };
     }
     default: {
@@ -57,16 +66,16 @@ function reducer(state, action) {
 // Spotlight Admin context provider
 function MaterialUIControllerProvider({ children }) {
   const initialState = {
-    miniSidenav: false,
-    transparentSidenav: false,
-    whiteSidenav: false,
-    sidenavColor: "info",
-    transparentNavbar: true,
-    fixedNavbar: true,
-    openConfigurator: false,
-    direction: "ltr",
-    layout: "dashboard",
-    darkMode: false,
+    miniSidenav: JSON.parse(localStorage.getItem("miniSidenav")) ?? false,
+    transparentSidenav: JSON.parse(localStorage.getItem("transparentSidenav")) ?? false,
+    whiteSidenav: JSON.parse(localStorage.getItem("whiteSidenav")) ?? false,
+    sidenavColor: localStorage.getItem("sidenavColor") ?? "info",
+    transparentNavbar: JSON.parse(localStorage.getItem("transparentNavbar")) ?? true,
+    fixedNavbar: JSON.parse(localStorage.getItem("fixedNavbar")) ?? true,
+    openConfigurator: JSON.parse(localStorage.getItem("openConfigurator")) ?? false,
+    direction: localStorage.getItem("direction") ?? "ltr",
+    layout: localStorage.getItem("layout") ?? "dashboard",
+    darkMode: JSON.parse(localStorage.getItem("darkMode")) ?? false,
   };
 
   const [controller, dispatch] = useReducer(reducer, initialState);
@@ -96,12 +105,15 @@ MaterialUIControllerProvider.propTypes = {
 
 // Context module functions
 const setMiniSidenav = (dispatch, value) => dispatch({ type: "MINI_SIDENAV", value });
-const setTransparentSidenav = (dispatch, value) => dispatch({ type: "TRANSPARENT_SIDENAV", value });
+const setTransparentSidenav = (dispatch, value) =>
+  dispatch({ type: "TRANSPARENT_SIDENAV", value });
 const setWhiteSidenav = (dispatch, value) => dispatch({ type: "WHITE_SIDENAV", value });
 const setSidenavColor = (dispatch, value) => dispatch({ type: "SIDENAV_COLOR", value });
-const setTransparentNavbar = (dispatch, value) => dispatch({ type: "TRANSPARENT_NAVBAR", value });
+const setTransparentNavbar = (dispatch, value) =>
+  dispatch({ type: "TRANSPARENT_NAVBAR", value });
 const setFixedNavbar = (dispatch, value) => dispatch({ type: "FIXED_NAVBAR", value });
-const setOpenConfigurator = (dispatch, value) => dispatch({ type: "OPEN_CONFIGURATOR", value });
+const setOpenConfigurator = (dispatch, value) =>
+  dispatch({ type: "OPEN_CONFIGURATOR", value });
 const setDirection = (dispatch, value) => dispatch({ type: "DIRECTION", value });
 const setLayout = (dispatch, value) => dispatch({ type: "LAYOUT", value });
 const setDarkMode = (dispatch, value) => dispatch({ type: "DARKMODE", value });

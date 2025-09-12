@@ -29,7 +29,7 @@ const BlogDetails = () => {
   const { videos, fetchVideos, loading: videosLoading } = useVideoStore();
 
   const [item, setItem] = useState(null);
-  const viewRef = useRef(false); // ✅ to track if view was incremented
+  const viewRef = useRef(false); //  to track if view was incremented
 
   // Initialize AOS animation library
   useEffect(() => {

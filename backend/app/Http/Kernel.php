@@ -39,7 +39,7 @@ class Kernel extends HttpKernel
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\CheckTokenExpiry::class,
+            // \App\Http\Middleware\CheckTokenExpiry::class,
 
         ],
     ];
@@ -64,4 +64,9 @@ class Kernel extends HttpKernel
 
         // you will add your custom role middleware here later
     ];
+
+    protected $commands = [
+    \App\Console\Commands\UpdateTokenExpiry::class,
+];
+
 }

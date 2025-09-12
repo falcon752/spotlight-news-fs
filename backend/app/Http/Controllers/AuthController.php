@@ -47,44 +47,35 @@ class AuthController extends Controller
     /**
      * Login and issue token with expiry
      */
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
+public function login(Request $request)
+{
+    $request->validate([
+        'email'    => 'required|email',
+        'password' => 'required|string',
+    ]);
 
-        // Find author by email
-        $author = Author::where('email', $request->email)->first();
+    $author = Author::where('email', $request->email)->first();
 
-        // Check credentials
-        if (!$author || !Hash::check($request->password, $author->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        // Create token
-        $tokenResult = $author->createToken('auth_token');
-        $plainTextToken = $tokenResult->plainTextToken;
-
-        // Set expiry (2 days)
-        $author->tokens()
-            ->where('id', $tokenResult->accessToken->id)
-            ->update([
-                'expires_at' => now()->addDays(2),
-            ]);
-
-        // Return response
-        return response()->json([
-            'access_token' => $plainTextToken,
-            'token_type'   => 'Bearer',
-            'expires_at'   => now()->addDays(2)->toDateTimeString(),
-            'author'       => [
-                'name'   => $author->name,
-                'email'  => $author->email,
-                'slug'   => $author->slug,
-                'role'   => $author->role,
-                'avatar' => $author->avatar_url, // accessor for full URL
-            ],
-        ]);
+    if (!$author || !Hash::check($request->password, $author->password)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
     }
+
+    // Create token (no expiry)
+    $tokenResult = $author->createToken('auth_token');
+    $plainTextToken = $tokenResult->plainTextToken;
+
+    return response()->json([
+        'access_token' => $plainTextToken,
+        'token_type'   => 'Bearer',
+        'author'       => [
+            'name'   => $author->name,
+            'email'  => $author->email,
+            'slug'   => $author->slug,
+            'role'   => $author->role,
+            'avatar' => $author->avatar_url,
+        ],
+    ]);
+}
+
+
 }

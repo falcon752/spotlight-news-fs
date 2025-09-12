@@ -18,7 +18,7 @@ class Post extends Model
         'date',
     ];
 
-    protected $appends = ['img_url']; // ✅ full URL accessor
+    protected $appends = ['img_url']; //  full URL accessor
 
     public function categories()
     {

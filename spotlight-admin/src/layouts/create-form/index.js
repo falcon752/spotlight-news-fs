@@ -18,8 +18,11 @@ import useVideoStore from "store/useVideoStore";
 import Swal from "sweetalert2";
 import axiosAdmin from "api/axiosAdmin";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useMaterialUIController } from "context";
 
-// ✅ Custom upload adapter using axiosAdmin
+
+
+//  Custom upload adapter using axiosAdmin
 class CustomUploadAdapter {
   constructor(loader) {
     this.loader = loader;
@@ -47,15 +50,15 @@ class CustomUploadAdapter {
 }
 
 function CreateForm() {
-  const location = useLocation(); // ✅ added
-  const navigate = useNavigate(); // ✅ added
+  const location = useLocation(); //  added
+  const navigate = useNavigate(); //  added
 
   const editorRef = useRef();
 
   const createPost = usePostStore((state) => state.createPost);
-  const updatePost = usePostStore((state) => state.updatePost); // ✅ added
+  const updatePost = usePostStore((state) => state.updatePost); //  added
   const createVideo = useVideoStore((state) => state.createVideo);
-  const updateVideo = useVideoStore((state) => state.updateVideo); // ✅ added
+  const updateVideo = useVideoStore((state) => state.updateVideo); //  added
 
   const { categories, fetchCategories } = useCategoryStore();
   const { author } = useAuthStore();
@@ -69,9 +72,13 @@ function CreateForm() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [errors, setErrors] = useState({});
 
-  const editingItem = location.state?.data || null; // ✅ use location safely
+  const editingItem = location.state?.data || null; //  use location safely
   const editingType = location.state?.type || null;
   const isEditing = Boolean(editingItem);
+
+const [controller] = useMaterialUIController();
+const { darkMode } = controller;
+
 
   // Load draft or editing data
   useEffect(() => {
@@ -146,7 +153,7 @@ function CreateForm() {
     if (!title.trim()) temp.title = "Title is required.";
     if (!content.trim()) temp.content = "Content is required.";
     if (contentType === "post" && !primaryImageFile && !isEditing)
-      temp.primaryImage = "Primary image is required."; // ✅ fixed validation
+      temp.primaryImage = "Primary image is required."; //  fixed validation
     if (contentType === "video" && !videoUrl.trim())
       temp.videoUrl = "Video URL is required.";
     if (contentType === "post" && selectedCategories.length === 0)
@@ -155,105 +162,109 @@ function CreateForm() {
     return Object.keys(temp).length === 0;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if (!validate()) {
-    Swal.fire({
-      icon: "error",
-      title: "Validation Error",
-      text: "Please fix the errors before submitting.",
-    });
-    return;
-  }
+    if (!validate()) {
+      Swal.fire({
+        icon: "error",
+        title: "Validation Error",
+        text: "Please fix the errors before submitting.",
+      });
+      return;
+    }
 
-  if (!author) {
-    Swal.fire({
-      icon: "warning",
-      title: "Not Logged In",
-      text: "You must be logged in to create content.",
-    });
-    return;
-  }
+    if (!author) {
+      Swal.fire({
+        icon: "warning",
+        title: "Not Logged In",
+        text: "You must be logged in to create content.",
+      });
+      return;
+    }
 
-  try {
-    if (isEditing) {
+    try {
+      if (isEditing) {
+        if (contentType === "video") {
+          await updateVideo(editingItem.id, {
+            title,
+            desc: content,
+            video_url: videoUrl,
+            author_id: author.id,
+            thumbnail: primaryImageFile || editingItem.thumbnail,
+          });
+        } else {
+          await updatePost(editingItem.id, {
+            title,
+            desc: content,
+            categories: selectedCategories,
+            primaryImage:
+              primaryImageFile instanceof File ? primaryImageFile : null,
+            date: editingItem.date, // optional
+          });
+        }
+
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: `${
+            contentType === "video" ? "Video" : "Post"
+          } updated successfully.`,
+        });
+
+        navigate(-1); // go back
+        return;
+      }
+
+      // CREATE NEW
       if (contentType === "video") {
-        await updateVideo(editingItem.id, {
+        await createVideo({
           title,
-          desc: content,
-          video_url: videoUrl,
-          author_id: author.id,
-          thumbnail: primaryImageFile || editingItem.thumbnail,
+          content,
+          videoUrl,
+          authorId: author.id,
+          thumbnail: primaryImageFile,
         });
       } else {
-        await updatePost(editingItem.id, {
+        await createPost({
           title,
           desc: content,
           categories: selectedCategories,
-          primaryImage: primaryImageFile instanceof File ? primaryImageFile : null,
-          date: editingItem.date, // optional
+          primaryImage: primaryImageFile,
+          authorId: author.id,
+          videoUrl: null,
         });
       }
 
       Swal.fire({
         icon: "success",
-        title: "Updated!",
-        text: `${contentType === "video" ? "Video" : "Post"} updated successfully.`,
+        title: "Success!",
+        text: `${
+          contentType === "video" ? "Video" : "Post"
+        } created successfully.`,
+        confirmButtonColor: "#3085d6",
       });
 
-      navigate(-1); // go back
-      return;
+      // Reset form
+      setTitle("");
+      setContent("");
+      setContentType("post");
+      setVideoUrl("");
+      setSelectedCategories([]);
+      setPrimaryImagePreview(null);
+      setPrimaryImageFile(null);
+      setErrors({});
+      if (editorRef.current?.editor) editorRef.current.editor.setData("");
+      localStorage.removeItem("createFormDraft");
+    } catch (err) {
+      console.error("❌ Failed to submit:", err.response?.data || err.message);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: `Error submitting ${contentType}. Your draft is saved.`,
+      });
     }
-
-    // CREATE NEW
-    if (contentType === "video") {
-      await createVideo({
-        title,
-        content,
-        videoUrl,
-        authorId: author.id,
-        thumbnail: primaryImageFile,
-      });
-    } else {
-      await createPost({
-        title,
-        desc: content,
-        categories: selectedCategories,
-        primaryImage: primaryImageFile,
-        authorId: author.id,
-        videoUrl: null,
-      });
-    }
-
-    Swal.fire({
-      icon: "success",
-      title: "Success!",
-      text: `${contentType === "video" ? "Video" : "Post"} created successfully.`,
-      confirmButtonColor: "#3085d6",
-    });
-
-    // Reset form
-    setTitle("");
-    setContent("");
-    setContentType("post");
-    setVideoUrl("");
-    setSelectedCategories([]);
-    setPrimaryImagePreview(null);
-    setPrimaryImageFile(null);
-    setErrors({});
-    if (editorRef.current?.editor) editorRef.current.editor.setData("");
-    localStorage.removeItem("createFormDraft");
-  } catch (err) {
-    console.error("❌ Failed to submit:", err.response?.data || err.message);
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: `Error submitting ${contentType}. Your draft is saved.`,
-    });
-  }
-};
-
+  };
 
   return (
     <DashboardLayout>
@@ -274,7 +285,7 @@ const handleSubmit = async (e) => {
               >
                 <MDTypography variant="h6" color="white">
                   {isEditing ? "Edit Content" : "Create New Content"}{" "}
-                  {/* ✅ dynamic title */}
+                  {/*  dynamic title */}
                 </MDTypography>
               </MDBox>
 
@@ -294,7 +305,6 @@ const handleSubmit = async (e) => {
                       </span>
                     )}
                   </MDBox>
-
                   {/* Content Type */}
                   <MDBox mb={2}>
                     <MDTypography variant="subtitle2" color="text" mb={1}>
@@ -310,7 +320,6 @@ const handleSubmit = async (e) => {
                       <option value="video">Video</option>
                     </select>
                   </MDBox>
-
                   {/* Video URL */}
                   {contentType === "video" && (
                     <MDBox mb={2}>
@@ -327,7 +336,6 @@ const handleSubmit = async (e) => {
                       )}
                     </MDBox>
                   )}
-
                   {/* Content */}
                   <MDBox mb={2}>
                     <MDTypography variant="subtitle2" color="text">
@@ -365,7 +373,6 @@ const handleSubmit = async (e) => {
                       </span>
                     )}
                   </MDBox>
-
                   {/* Primary Image */}
                   {contentType === "post" && (
                     <MDBox mb={2}>
@@ -462,7 +469,7 @@ const handleSubmit = async (e) => {
                     </MDBox>
                   )}
 
-                  {/* Categories */}
+                  {/* // Categories */}
                   {contentType === "post" && (
                     <MDBox mb={2}>
                       <MDTypography variant="subtitle2" color="text" mb={1}>
@@ -472,13 +479,25 @@ const handleSubmit = async (e) => {
                         {categories.map((cat) => (
                           <label
                             key={cat.id}
-                            style={{ marginBottom: "6px", fontWeight: 500 }}
+                            style={{
+                              marginBottom: "6px",
+                              fontWeight: 500,
+                              display: "flex",
+                              alignItems: "center",
+                              color: darkMode ? "#fff" : "#444", //  text color adapts
+                            }}
                           >
                             <input
                               type="checkbox"
                               checked={selectedCategories.includes(cat.id)}
                               onChange={() => handleCategoryChange(cat.id)}
-                              style={{ marginRight: "6px" }}
+                              style={{
+                                marginRight: "8px",
+                                width: "16px",
+                                height: "16px",
+                                accentColor: darkMode ? "#fff" : "#666", //  checkbox color adapts
+                                cursor: "pointer",
+                              }}
                             />
                             {cat.name}
                           </label>
@@ -491,7 +510,6 @@ const handleSubmit = async (e) => {
                       )}
                     </MDBox>
                   )}
-
                   {/* Submit */}
                   <MDBox mt={3}>
                     <MDButton
@@ -501,7 +519,7 @@ const handleSubmit = async (e) => {
                       fullWidth
                     >
                       {isEditing ? "Update" : "Submit"}{" "}
-                      {/* ✅ dynamic button */}
+                      {/*  dynamic button */}
                     </MDButton>
                     {!isEditing && (
                       <MDButton

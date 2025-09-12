@@ -29,6 +29,8 @@ import rtlPlugin from "stylis-plugin-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
+import useAuthStore from "store/useAuthStore";
+
 // Spotlight Admin routes
 import routes from "routes";
 
@@ -99,6 +101,10 @@ export default function App() {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
   }, [pathname]);
+
+  useEffect(() => {
+    useAuthStore.getState().initializeAuth();
+  }, []);
 
   const getRoutes = (allRoutes) =>
     allRoutes.map((route) => {

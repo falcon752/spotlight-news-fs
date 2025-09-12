@@ -5,7 +5,7 @@ const useVideoStore = create((set, get) => ({
   videos: [],
   loading: false,
   error: null,
-  editingVideo: null, // ✅ for edit mode
+  editingVideo: null, //  for edit mode
 
   // Fetch all videos
   fetchVideos: async () => {
@@ -50,7 +50,7 @@ const useVideoStore = create((set, get) => ({
     try {
       const formData = new FormData();
       if (title) formData.append("title", title);
-      if (desc) formData.append("desc", desc); // ✅ FIXED: use desc instead of content
+      if (desc) formData.append("desc", desc); //  FIXED: use desc instead of content
       if (videoUrl) formData.append("video_url", videoUrl);
       if (authorId) formData.append("author_id", authorId);
       if (thumbnail) formData.append("thumbnail", thumbnail);
@@ -100,7 +100,7 @@ const useVideoStore = create((set, get) => ({
   clearVideos: async () => {
     set({ loading: true, error: null });
     try {
-      await axiosAdmin.delete("/videos/clear");
+      await axiosAdmin.delete("/videos/clear"); // axiosAdmin should send auth
       set({ videos: [], loading: false });
     } catch (err) {
       set({

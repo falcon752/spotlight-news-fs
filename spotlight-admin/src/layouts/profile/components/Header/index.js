@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
-import Swal from "sweetalert2"; // ✅ Import SweetAlert2
+import Swal from "sweetalert2"; //  Import SweetAlert2
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -55,7 +55,7 @@ function Header({ children }) {
       try {
         await updateAvatar(file);
 
-        // ✅ SweetAlert2 modal
+        //  SweetAlert2 modal
         Swal.fire({
           title: "Profile Updated!",
           text: "Your profile picture has been changed successfully.",
