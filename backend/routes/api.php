@@ -8,6 +8,10 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PostViewController;
+use App\Http\Controllers\VideoViewController;
+use App\Http\Controllers\PageVisitController;
+use App\Http\Controllers\PaymentController;
+
 
 
 
@@ -32,6 +36,14 @@ Route::get('/videos/{id}', [VideoController::class, 'show']);       // ✅ Publi
 Route::post('/contact', [ContactController::class, 'send']);
 
 Route::post('/posts/{post}/increment-view', [PostViewController::class, 'increment']);
+Route::post('/video-views/increment/{video}', [VideoViewController::class, 'increment']);
+Route::post('/page-visit', [PageVisitController::class, 'store']);
+Route::get('/page-visit/total', [PageVisitController::class, 'total']);
+
+Route::post('/paystack/init', [PaymentController::class, 'redirectToGateway']);
+Route::get('/paystack/callback', [PaymentController::class, 'handleGatewayCallback'])->name('payment.callback');
+
+
 
 
 

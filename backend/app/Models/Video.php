@@ -35,4 +35,10 @@ class Video extends Model
     {
         return $this->belongsTo(Author::class);
     }
+
+    public function view()
+{
+    return $this->hasOne(VideoView::class);
+}
+
 }

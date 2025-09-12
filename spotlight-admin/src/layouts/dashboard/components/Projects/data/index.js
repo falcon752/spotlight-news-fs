@@ -13,13 +13,10 @@ export default function useAdminPostsData() {
   const [data, setData] = useState({ columns: [], rows: [] });
 
   useEffect(() => {
-    const fetchPostsAndVideos = async () => {
+    const fetchPosts = async () => {
       try {
         // Fetch posts with authors and views
         const posts = await axiosAdmin.get("/posts"); // expects author & views included
-        const videos = await axiosAdmin.get("/videos"); // same for videos
-
-        const allItems = [...posts.data, ...videos.data];
 
         const avatars = (author) => (
           <Tooltip
@@ -43,15 +40,11 @@ export default function useAdminPostsData() {
           </Tooltip>
         );
 
-        const maxViews = Math.max(
-          ...allItems.map((i) => i.views_count || 0),
-          1
-        );
-
-        
+        const maxViews = Math.max(...posts.data.map((i) => i.views_count || 0), 1);
 
         const createRow = (item) => {
-        const views = item.views_count || 0;
+          const views = item.views_count || 0;
+
           // Trim title to first 4 words
           const trimmedTitle = item.title
             ? item.title.split(" ").slice(0, 4).join(" ") +
@@ -95,35 +88,24 @@ export default function useAdminPostsData() {
           };
         };
 
-        const rows = allItems
+        const rows = posts.data
           .map(createRow)
           .sort((a, b) => b.rawViews - a.rawViews)
           .map(({ rawViews, ...rest }) => rest);
 
         const columns = [
-          {
-            Header: "Title",
-            accessor: "companies",
-            width: "45%",
-            align: "left",
-          },
-          {
-            Header: "Author",
-            accessor: "members",
-            width: "10%",
-            align: "left",
-          },
+          { Header: "Title", accessor: "companies", width: "45%", align: "left" },
+          { Header: "Author", accessor: "members", width: "10%", align: "left" },
           { Header: "Views", accessor: "budget", align: "center" },
-          // { Header: "Popularity", accessor: "completion", align: "center" },
         ];
 
         setData({ columns, rows });
       } catch (err) {
-        console.error("Error fetching posts or videos:", err);
+        console.error("Error fetching posts:", err);
       }
     };
 
-    fetchPostsAndVideos();
+    fetchPosts();
   }, []);
 
   return data;

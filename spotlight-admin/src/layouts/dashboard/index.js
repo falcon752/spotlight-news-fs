@@ -14,11 +14,13 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
-import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 
-import useAuthStore from "store/useAuthStore"; // Zustand store for authors
-import usePostStore from "store/usePostStore"; // ✅ new store for posts
-import useVideoStore from "store/useVideoStore"; // ✅ new store for videos
+// Stores
+import useAuthStore from "store/useAuthStore";
+import usePostStore from "store/usePostStore";
+import useVideoStore from "store/useVideoStore";
+import { useCategoryStore } from "store/useCategoryStore";
+import usePageVisitStore from "store/usePageVisitStore"; // <-- import new store
 
 // Helper to calculate percentage change
 const calculatePercentage = (current, previous) => {
@@ -31,27 +33,45 @@ function Dashboard() {
   const { authors, fetchAuthors, isLoading } = useAuthStore();
   const { posts, fetchPosts, loading: postsLoading } = usePostStore();
   const { videos, fetchVideos, loading: videosLoading } = useVideoStore();
+  const { categories, fetchCategories, loading: categoriesLoading } =
+    useCategoryStore();
 
-  // Fetch authors, posts, and videos on mount
+  const { totalVisits, fetchTotalVisits, loading: visitsLoading } =
+    usePageVisitStore(); // fetch total page visits
+
+  // Fetch all data on mount
   useEffect(() => {
-    fetchAuthors();
-    fetchPosts();
-    fetchVideos();
-  }, [fetchAuthors, fetchPosts, fetchVideos]);
+    const fetchAll = async () => {
+      await Promise.all([
+        fetchAuthors(),
+        fetchPosts(),
+        fetchVideos(),
+        fetchCategories(),
+        fetchTotalVisits(), // fetch visits dynamically
+      ]);
+    };
+    fetchAll();
+  }, [fetchAuthors, fetchPosts, fetchVideos, fetchCategories, fetchTotalVisits]);
 
-  // Simulated previous counts (replace with real historical data later if you want)
+  // Simulated previous counts
   const prevPosts = 2;
   const prevVideos = 3;
   const prevAuthors = 4;
+  const prevCategories = 3;
 
   const postsChange = calculatePercentage(posts.length, prevPosts);
   const videosChange = calculatePercentage(videos.length, prevVideos);
   const authorsChange = calculatePercentage(authors.length, prevAuthors);
+  const categoriesChange = calculatePercentage(categories.length, prevCategories);
 
-  const { sales, tasks } = reportsLineChartData;
-
-  // Show loader while fetching data
-  if (isLoading || postsLoading || videosLoading) {
+  // Loader
+  if (
+    isLoading ||
+    postsLoading ||
+    videosLoading ||
+    categoriesLoading ||
+    visitsLoading
+  ) {
     return (
       <DashboardLayout>
         <DashboardNavbar />
@@ -76,7 +96,7 @@ function Dashboard() {
                 color="dark"
                 icon="article"
                 title="Posts"
-                count={posts.length} // ✅ dynamic from backend
+                count={posts.length}
                 percentage={{
                   color: posts.length - prevPosts >= 0 ? "success" : "error",
                   amount: postsChange,
@@ -93,7 +113,7 @@ function Dashboard() {
                 color="info"
                 icon="video_library"
                 title="Videos"
-                count={videos.length} // ✅ dynamic from backend
+                count={videos.length}
                 percentage={{
                   color: videos.length - prevVideos >= 0 ? "success" : "error",
                   amount: videosChange,
@@ -110,7 +130,7 @@ function Dashboard() {
                 color="success"
                 icon="person"
                 title="Total Users"
-                count={authors.length} // ✅ from backend
+                count={authors.length}
                 percentage={{
                   color: authors.length - prevAuthors >= 0 ? "success" : "error",
                   amount: authorsChange,
@@ -120,77 +140,47 @@ function Dashboard() {
             </MDBox>
           </Grid>
 
-          {/* Followers (static for now) */}
+          {/* Categories */}
           <Grid item xs={12} md={6} lg={3}>
             <MDBox mb={1.5}>
               <ComplexStatisticsCard
                 color="primary"
-                icon="person_add"
-                title="Followers"
-                count="+91"
+                icon="category"
+                title="Categories"
+                count={categories.length}
                 percentage={{
-                  color: "success",
-                  amount: "",
-                  label: "Just updated",
+                  color: categories.length - prevCategories >= 0 ? "success" : "error",
+                  amount: categoriesChange,
+                  label: "compared to last week",
                 }}
               />
             </MDBox>
           </Grid>
         </Grid>
 
-        {/* Charts */}
+        {/* Projects and Total Page Visits side by side */}
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsBarChart
-                  color="info"
-                  title="Website Views"
-                  description="Last Campaign Performance"
-                  date="campaign sent 2 days ago"
-                  chart={reportsBarChartData}
-                />
-              </MDBox>
-            </Grid>
-
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="success"
-                  title="Daily Sales"
-                  description={
-                    <>
-                      (<strong>+15%</strong>) increase in today sales.
-                    </>
-                  }
-                  date="updated 4 min ago"
-                  chart={sales}
-                />
-              </MDBox>
-            </Grid>
-
-            <Grid item xs={12} md={6} lg={4}>
-              <MDBox mb={3}>
-                <ReportsLineChart
-                  color="dark"
-                  title="Completed Tasks"
-                  description="Last Campaign Performance"
-                  date="just updated"
-                  chart={tasks}
-                />
-              </MDBox>
-            </Grid>
-          </Grid>
-        </MDBox>
-
-        {/* Projects & Orders */}
-        <MDBox>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={8}>
+            {/* Projects */}
+            <Grid item xs={12} md={8} lg={8}>
               <Projects />
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
-              {/* <OrdersOverview /> */}
+
+            {/* Total Page Visits */}
+            <Grid item xs={12} md={4} lg={4}>
+              <MDBox mb={1.5}>
+                <ComplexStatisticsCard
+                  color="primary"
+                  icon="visibility"
+                  title="Total Page Visits"
+                  count={totalVisits} // <-- dynamic total visits
+                  percentage={{
+                    color: "success",
+                    amount: "+0%", // Optional: calculate weekly change if needed
+                    label: "compared to last week",
+                  }}
+                />
+              </MDBox>
             </Grid>
           </Grid>
         </MDBox>
