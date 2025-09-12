@@ -25,9 +25,9 @@ export const usePostStore = create((set, get) => ({
               ...post.author,
               avatar: post.author.avatar
                 ? `${BASE_URL}/storage/${post.author.avatar}`
-                : null,
+                : `/assets/default_avatar.png`, // <--- use public asset directly
             }
-          : null,
+          : { avatar: `/assets/default_avatar.png` },
         date: post.created_at,
         views: post.views || 0,
       }));

@@ -35,7 +35,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Posts",
+    name: "Manage Posts",
     key: "tables",
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/tables",
@@ -59,7 +59,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Create Category",
+    name: "Manage Post Categories",
     key: "create-category",
     route: "/create-category",
     icon: <Icon>category</Icon>,

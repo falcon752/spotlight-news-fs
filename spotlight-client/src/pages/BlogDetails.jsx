@@ -183,7 +183,7 @@ const BlogDetails = () => {
                           <p style={{ margin: 0 }}>
                             <i className="bi bi-calendar3"></i> {formatDate(item.date || item.created_at)}
                           </p>
-                          {item.views !== undefined && <p style={{ fontStyle: "italic" }}>Views: {item.views}</p>}
+                          {/* {item.views !== undefined && <p style={{ fontStyle: "italic" }}>Views: {item.views}</p>} */}
                         </div>
                       </div>
 

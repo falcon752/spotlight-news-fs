@@ -105,7 +105,7 @@ function CreateCategory() {
   const handleDelete = async (category) => {
     const result = await MySwal.fire({
       title: "Are you sure?",
-      text: "Deleting this category will remove all posts under it!",
+      text: "Deleting this category will render all posts uncategorized!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: theme.palette.error.main,
