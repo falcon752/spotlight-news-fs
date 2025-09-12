@@ -6,7 +6,7 @@ import Tables from "layouts/tables";
 import CreateForm from "layouts/create-form";
 import CreateCategory from "layouts/create-category";
 import UsersTable from "layouts/users-table"; // Users Table
-import EditUsers from "layouts/edit-users"; // <-- Edit Users / Edit Roles page
+import EditUsers from "layouts/edit-users";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
