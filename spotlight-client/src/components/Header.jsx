@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, NavLink, useLocation } from "react-router-dom";
+import { useNavigate, NavLink } from "react-router-dom";
 import {
   BsFacebook,
   BsTwitter,
@@ -12,31 +12,32 @@ import { usePostStore } from "../store/usePostStore";
 
 const Header = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const { categories, fetchCategories } = usePostStore();
   const [dynamicCategories, setDynamicCategories] = useState([]);
   const [isSticky, setIsSticky] = useState(false);
 
-  // Fetch dynamic categories
+  // Fetch categories only once on mount
   useEffect(() => {
     const loadCategories = async () => {
-      if (!categories || categories.length === 0) {
-        await fetchCategories();
-      }
+      await fetchCategories();
+    };
+    loadCategories();
+  }, [fetchCategories]);
+
+  // Update dynamicCategories when categories change
+  useEffect(() => {
+    if (categories && categories.length > 0) {
       const filtered = categories.filter(
         (cat) => !["videos", "contact", "donate", "home"].includes(cat.slug)
       );
       setDynamicCategories(filtered);
-    };
-    loadCategories();
-  }, [categories, fetchCategories]);
+    }
+  }, [categories]);
 
   // Sticky nav on scroll
   useEffect(() => {
-    const handleScroll = () => {
-      setIsSticky(window.scrollY > 50); // adjust threshold if needed
-    };
+    const handleScroll = () => setIsSticky(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -44,16 +45,12 @@ const Header = () => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(
-        `/search-results?query=${encodeURIComponent(searchTerm.trim())}`
-      );
+      navigate(`/search-results?query=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
 
-  const categorySlugs = dynamicCategories.map((cat) => cat.slug);
-  const isCategoryActive = categorySlugs.some((slug) =>
-    location.pathname.startsWith(`/category/${slug}`)
-  );
+  const firstSix = dynamicCategories.slice(0, 6);
+  const remaining = dynamicCategories.slice(6);
 
   return (
     <header id="header" className="header position-relative">
@@ -69,39 +66,16 @@ const Header = () => {
 
           <div className="d-flex align-items-center">
             <div className="social-links d-flex align-items-center">
-              <a
-                href="https://web.facebook.com/profile.php?id=61559480481152"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
+              <a href="https://web.facebook.com/profile.php?id=61559480481152" target="_blank" rel="noopener noreferrer" className="mx-2">
                 <BsFacebook />
               </a>
-
-              <a
-                href="https://x.com/Spotlightngr"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
+              <a href="https://x.com/Spotlightngr" target="_blank" rel="noopener noreferrer" className="mx-2">
                 <BsTwitter />
               </a>
-
-              <a
-                href="https://www.instagram.com/spotlightngr/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
+              <a href="https://www.instagram.com/spotlightngr/" target="_blank" rel="noopener noreferrer" className="mx-2">
                 <BsInstagram />
               </a>
-
-              <a
-                href="https://www.tiktok.com/search?q=Spotlightngr&t=1720187038652"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mx-2"
-              >
+              <a href="https://www.tiktok.com/search?q=Spotlightngr&t=1720187038652" target="_blank" rel="noopener noreferrer" className="mx-2">
                 <i className="bi bi-tiktok"></i>
               </a>
             </div>
@@ -127,67 +101,56 @@ const Header = () => {
           <nav id="navmenu" className="navmenu">
             <ul>
               <li>
-                <NavLink
-                  to="/"
-                  className={({ isActive }) =>
-                    isActive ? "active" : undefined
-                  }
-                  end
-                >
+                <NavLink to="/" className={({ isActive }) => isActive ? "active" : undefined} end>
                   Home
                 </NavLink>
               </li>
 
-              <li className={`dropdown ${isCategoryActive ? "active" : ""}`}>
-                <NavLink to="#" className={() => undefined}>
-                  <span>Categories</span>
-                  <BsChevronDown className="toggle-dropdown" />
-                </NavLink>
-                <ul>
-                  {dynamicCategories.map((cat) => (
-                    <li key={cat.id}>
-                      <NavLink
-                        to={`/category/${cat.slug}`}
-                        className={({ isActive }) =>
-                          isActive ? "active" : undefined
-                        }
-                      >
-                        {cat.name}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </li>
+              {firstSix.map((cat) => (
+                <li key={cat.id}>
+                  <NavLink
+                    to={`/category/${cat.slug}`}
+                    className={({ isActive }) => isActive ? "active" : undefined}
+                  >
+                    {cat.name}
+                  </NavLink>
+                </li>
+              ))}
+
+              {remaining.length > 0 && (
+                <li className="dropdown">
+                  <NavLink to="#" className={() => undefined}>
+                    <span>More</span> <BsChevronDown className="toggle-dropdown" />
+                  </NavLink>
+                  <ul>
+                    {remaining.map((cat) => (
+                      <li key={cat.id}>
+                        <NavLink
+                          to={`/category/${cat.slug}`}
+                          className={({ isActive }) => isActive ? "active" : undefined}
+                        >
+                          {cat.name}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              )}
 
               <li>
-                <NavLink
-                  to="/videos"
-                  className={({ isActive }) =>
-                    isActive ? "active" : undefined
-                  }
-                >
+                <NavLink to="/videos" className={({ isActive }) => isActive ? "active" : undefined}>
                   Videos
                 </NavLink>
               </li>
 
               <li>
-                <NavLink
-                  to="/contact"
-                  className={({ isActive }) =>
-                    isActive ? "active" : undefined
-                  }
-                >
+                <NavLink to="/contact" className={({ isActive }) => isActive ? "active" : undefined}>
                   Contact
                 </NavLink>
               </li>
 
               <li>
-                <NavLink
-                  to="/donate"
-                  className={({ isActive }) =>
-                    isActive ? "active" : undefined
-                  }
-                >
+                <NavLink to="/donate" className={({ isActive }) => isActive ? "active" : undefined}>
                   Donate
                 </NavLink>
               </li>

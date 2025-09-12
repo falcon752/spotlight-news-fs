@@ -1,4 +1,3 @@
-// src/pages/CategoryPage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { usePostStore } from "../store/usePostStore";
@@ -7,30 +6,10 @@ import VideoCard from "../components/VideoCard";
 import VideoModal from "../components/VideoModal";
 import { Helmet } from "react-helmet-async";
 import NotFound from "./404";
-import { useVideoStore } from "../store/useVideoStore";
 
 export default function CategoryPage() {
   const { categorySlug } = useParams();
-  const { categories, posts, fetchCategories, fetchPosts, loading } =
-    usePostStore();
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMinutes / 60);
-
-    if (diffMinutes < 60) return `${diffMinutes}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-
-    // Month-first format
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const { categories, posts, fetchCategories, fetchPosts, loading } = usePostStore();
 
   const [category, setCategory] = useState(null);
   const [items, setItems] = useState([]);
@@ -39,16 +18,17 @@ export default function CategoryPage() {
   // Strip HTML from titles/descriptions
   const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
-  // Fetch categories and posts from backend
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!categories || categories.length === 0) await fetchCategories();
-      if (!posts || posts.length === 0) await fetchPosts();
-    };
-    fetchData();
-  }, [categories, posts, fetchCategories, fetchPosts]);
+  // Fetch categories and posts only once
+useEffect(() => {
+  const fetchData = async () => {
+    await fetchCategories();
+    await fetchPosts();
+  };
+  fetchData();
+}, [fetchCategories, fetchPosts]); // Only the functions, not the store values
 
-  // Filter category and items
+
+  // Filter items based on categorySlug
   useEffect(() => {
     if (!categories || !posts) return;
 
@@ -62,12 +42,29 @@ export default function CategoryPage() {
 
     const isVideoCategory = categorySlug === "videos";
 
-    const filteredItems = isVideoCategory
-      ? posts.filter((v) => v.categories?.some((c) => c.id === cat.id)) // videos
-      : posts.filter((p) => p.categories?.some((c) => c.id === cat.id)); // posts
+    const filteredItems = posts.filter((p) =>
+      p.categories?.some((c) => c.id === cat.id)
+    );
 
     setItems(filteredItems);
   }, [categorySlug, categories, posts]);
+
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
+
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   if (loading) return <p className="text-center mt-10">Loading...</p>;
   if (!category) return <NotFound />;
@@ -106,20 +103,12 @@ export default function CategoryPage() {
           <div className="row">
             <div className="col-lg-8">
               <section className="category-postst section">
-                <div
-                  className="container"
-                  data-aos="fade-up"
-                  data-aos-delay="100"
-                >
+                <div className="container" data-aos="fade-up" data-aos-delay="100">
                   <div className="row gy-4">
                     {items.length > 0 ? (
                       isVideoCategory ? (
                         items.map((video) => (
-                          <VideoCard
-                            key={video.id}
-                            video={video}
-                            onPlay={(vid) => setSelectedVideo(vid)}
-                          />
+                          <VideoCard key={video.id} video={video} onPlay={(vid) => setSelectedVideo(vid)} />
                         ))
                       ) : (
                         items.map((post) => {
@@ -127,36 +116,17 @@ export default function CategoryPage() {
                           return (
                             <div className="col-lg-6" key={post.id}>
                               <article>
-                                <Link
-                                  to={`/category/${category.slug}/${post.slug}`}
-                                  style={{
-                                    textDecoration: "none",
-                                    color: "inherit",
-                                  }}
-                                >
+                                <Link to={`/category/${category.slug}/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                                   <div className="post-img">
                                     <img src={post.img} alt={post.title} />
                                   </div>
-                                  <p className="post-category">
-                                    {category.name}
-                                  </p>
-                                  <h2 className="title">
-                                    {stripHtml(post.title)}
-                                  </h2>
+                                  <p className="post-category">{category.name}</p>
+                                  <h2 className="title">{stripHtml(post.title)}</h2>
                                   <div className="d-flex align-items-center">
-                                    <img
-                                      src={author?.avatar}
-                                      alt={author?.name}
-                                      className="post-author-img"
-                                    />
+                                    <img src={author?.avatar} alt={author?.name} className="post-author-img" />
                                     <div>
-                                      <p className="post-author">
-                                        {author?.name}
-                                      </p>
-                                      <p className="post-date">
-                                        {formatDate(post.date)}
-                                      </p>{" "}
-                                      {/* <-- formatted date */}
+                                      <p className="post-author">{author?.name}</p>
+                                      <p className="post-date">{formatDate(post.date)}</p>
                                     </div>
                                   </div>
                                 </Link>
@@ -178,10 +148,7 @@ export default function CategoryPage() {
         </div>
       </main>
 
-      <VideoModal
-        video={selectedVideo}
-        onClose={() => setSelectedVideo(null)}
-      />
+      <VideoModal video={selectedVideo} onClose={() => setSelectedVideo(null)} />
     </div>
   );
 }

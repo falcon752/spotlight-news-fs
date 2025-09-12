@@ -6,6 +6,7 @@ import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
+import { Helmet } from "react-helmet-async"; // <- Added Helmet
 
 // Store
 import { usePostStore } from "../store/usePostStore";
@@ -56,6 +57,16 @@ const Home = () => {
 
   return (
     <>
+      <Helmet>
+        <title>
+          Spotlight Media | Investigative Journalism, Fact-Checking & Insights
+        </title>
+        <meta
+          name="description"
+          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+      </Helmet>
+
       {/* BLOG HERO */}
       <section id="blog-hero" className="blog-hero section">
         <div className="container" data-aos="fade-up" data-aos-delay="100">
@@ -79,7 +90,6 @@ const Home = () => {
                       {enrichedPosts[0].title}
                     </Link>
                   </h2>
-                  
                 </div>
               </article>
             )}
@@ -102,7 +112,6 @@ const Home = () => {
                       {post.title}
                     </Link>
                   </h3>
-                  
                 </div>
               </article>
             ))}
@@ -238,10 +247,8 @@ const Home = () => {
                       </Link>
                     </h3>
                     <div className="post-meta">
-                      {/* <span className="read-time">{post.readTime}</span> */}
                       <span className="post-date">{post.formattedDate}</span>
                     </div>
-                    {/* <p>{truncateWords(post.desc, 10)}</p> */}
                   </div>
                 </article>
               </div>

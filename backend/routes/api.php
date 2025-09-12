@@ -74,6 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Videos CRUD (excluding index/show since public)
     Route::post('/videos', [VideoController::class, 'store']);
     Route::put('/videos/{id}', [VideoController::class, 'update']);
-    Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
     Route::delete('/videos/clear', [VideoController::class, 'clearAll']);
+    Route::delete('/videos/{id}', [VideoController::class, 'destroy']);
+    
 });

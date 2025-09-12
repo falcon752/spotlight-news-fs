@@ -100,7 +100,7 @@ const useVideoStore = create((set, get) => ({
   clearVideos: async () => {
     set({ loading: true, error: null });
     try {
-      await axiosAdmin.delete("/videos/clear"); // axiosAdmin should send auth
+      await axiosAdmin.delete("/videos/clear");
       set({ videos: [], loading: false });
     } catch (err) {
       set({
