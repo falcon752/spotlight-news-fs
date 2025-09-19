@@ -12,6 +12,7 @@ import bgImage from "assets/images/bg-sign-up-cover.jpeg";
 
 import axiosAdmin from "api/axiosAdmin";
 import useAuthStore from "store/useAuthStore";
+import Swal from "sweetalert2";
 
 function Cover() {
   const navigate = useNavigate();
@@ -29,20 +30,8 @@ function Cover() {
     agreeTerms: false,
   });
 
-  // Validation errors
-  const [errors, setErrors] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    agreeTerms: "",
-    avatar: "",
-    submit: "",
-  });
-
   const handleChange = (field, value) => {
     setFormData({ ...formData, [field]: value });
-    setErrors({ ...errors, [field]: "" }); // Clear error on change
   };
 
   const handleFileSelect = (event) => {
@@ -55,11 +44,10 @@ function Cover() {
         "image/svg+xml",
       ];
       if (!allowedTypes.includes(file.type)) {
-        setErrors({ ...errors, avatar: "Invalid image type" });
+        Swal.fire("Invalid file", "Please upload a JPG, PNG, or SVG", "error");
         setSelectedImage(null);
       } else {
         setSelectedImage(file);
-        setErrors({ ...errors, avatar: "" });
       }
     }
   };
@@ -71,36 +59,25 @@ function Cover() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let hasError = false;
-    const newErrors = {};
-
+    // Validation
     if (!formData.name) {
-      newErrors.name = "Name is required";
-      hasError = true;
+      return Swal.fire("Missing field", "Name is required", "warning");
     }
     if (!formData.email) {
-      newErrors.email = "Email is required";
-      hasError = true;
+      return Swal.fire("Missing field", "Email is required", "warning");
     }
     if (!formData.password) {
-      newErrors.password = "Password is required";
-      hasError = true;
+      return Swal.fire("Missing field", "Password is required", "warning");
     }
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-      hasError = true;
+      return Swal.fire("Password mismatch", "Passwords do not match", "error");
     }
     if (!formData.agreeTerms) {
-      newErrors.agreeTerms = "You must agree to the terms";
-      hasError = true;
-    }
-    if (selectedImage && errors.avatar) {
-      hasError = true;
-    }
-
-    if (hasError) {
-      setErrors({ ...errors, ...newErrors });
-      return;
+      return Swal.fire(
+        "Terms required",
+        "You must agree to the terms and conditions",
+        "warning"
+      );
     }
 
     // Prepare FormData for backend
@@ -109,23 +86,27 @@ function Cover() {
     payload.append("email", formData.email);
     payload.append("password", formData.password);
     payload.append("password_confirmation", formData.confirmPassword);
-    payload.append("role", "Visitor"); // <-- assign Visitor by default
+    payload.append("role", "Visitor");
     if (selectedImage) payload.append("avatar", selectedImage);
 
     try {
-      const res = await axiosAdmin.post("/register", payload);
+      await axiosAdmin.post("/register", payload);
 
-      // Optionally, you can store the user info if needed
-      // setAuth(res.data.author, null);
-
-      // Redirect Visitor to /unauthorized
-      navigate("/unauthorized");
-    } catch (err) {
-      console.error(err.response);
-      setErrors({
-        ...errors,
-        submit: err.response?.data?.message || "Registration failed",
+      Swal.fire({
+        title: "Success!",
+        text: "Registration complete. Redirecting...",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      }).then(() => {
+        navigate("/unauthorized");
       });
+    } catch (err) {
+      Swal.fire(
+        "Registration failed",
+        err.response?.data?.message || "Something went wrong",
+        "error"
+      );
     }
   };
 
@@ -164,9 +145,6 @@ function Cover() {
                 onChange={(e) => handleChange("name", e.target.value)}
                 required
               />
-              {errors.name && (
-                <MDTypography color="error">{errors.name}</MDTypography>
-              )}
             </MDBox>
 
             {/* Email */}
@@ -180,9 +158,6 @@ function Cover() {
                 onChange={(e) => handleChange("email", e.target.value)}
                 required
               />
-              {errors.email && (
-                <MDTypography color="error">{errors.email}</MDTypography>
-              )}
             </MDBox>
 
             {/* Password */}
@@ -196,9 +171,6 @@ function Cover() {
                 onChange={(e) => handleChange("password", e.target.value)}
                 required
               />
-              {errors.password && (
-                <MDTypography color="error">{errors.password}</MDTypography>
-              )}
             </MDBox>
 
             {/* Confirm Password */}
@@ -214,11 +186,6 @@ function Cover() {
                 }
                 required
               />
-              {errors.confirmPassword && (
-                <MDTypography color="error">
-                  {errors.confirmPassword}
-                </MDTypography>
-              )}
             </MDBox>
 
             {/* Terms */}
@@ -245,11 +212,6 @@ function Cover() {
               >
                 Terms and Conditions
               </MDTypography>
-              {errors.agreeTerms && (
-                <MDTypography color="error" sx={{ ml: 2 }}>
-                  {errors.agreeTerms}
-                </MDTypography>
-              )}
             </MDBox>
 
             {/* Profile Image */}
@@ -271,9 +233,6 @@ function Cover() {
                 style={{ display: "none" }}
                 onChange={handleFileSelect}
               />
-              {errors.avatar && (
-                <MDTypography color="error">{errors.avatar}</MDTypography>
-              )}
               {selectedImage && (
                 <MDBox mt={2} textAlign="center">
                   <img

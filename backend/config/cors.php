@@ -6,7 +6,9 @@ return [
     'allowed_origins' => [
         'http://localhost:3000',
         'http://localhost:5173',
-        'http://127.0.0.1:3000',
+        'https://spotlightonline.ng',
+        'https://admin.spotlightonline.ng',
+        
     ],
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['*'],

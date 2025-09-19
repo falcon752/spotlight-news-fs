@@ -19,6 +19,8 @@ import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 import axiosAdmin from "api/axiosAdmin";
 import useAuthStore from "store/useAuthStore";
 
+import Swal from "sweetalert2";   // ✅ SweetAlert2
+
 function Basic() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -30,34 +32,49 @@ function Basic() {
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setErrors({});
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
 
-  try {
-    const res = await axiosAdmin.post("/login", { email, password });
+    try {
+      const res = await axiosAdmin.post("/login", { email, password });
 
-    // Save author and token
-    setAuth(res.data.author, res.data.access_token);
+      // Save author and token
+      setAuth(res.data.author, res.data.access_token);
 
-    // Redirect based on role
-    const role = res.data.author.role;
-    if (role === "Admin" || role === "Chief Admin") {
-      navigate("/dashboard"); // protected admin dashboard
-    } else {
-      navigate("/unauthorized"); // non-admin users
+      // ✅ SweetAlert success
+      Swal.fire({
+        icon: "success",
+        title: "Login Successful",
+        text: `Welcome back, ${res.data.author.name}!`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      // Redirect based on role
+      const role = res.data.author.role;
+      setTimeout(() => {
+        if (role === "Admin" || role === "Chief Admin") {
+          navigate("/dashboard"); // protected admin dashboard
+        } else {
+          navigate("/unauthorized"); // non-admin users
+        }
+      }, 2000);
+
+    } catch (err) {
+      if (err.response?.status === 422) {
+        // Validation errors from backend
+        setErrors(err.response.data.errors || {});
+      } else {
+        // ✅ SweetAlert error
+        Swal.fire({
+          icon: "error",
+          title: "Login Failed",
+          text: err.response?.data?.message || "Something went wrong",
+        });
+      }
     }
-
-  } catch (err) {
-    if (err.response?.status === 422) {
-      // Validation errors from backend
-      setErrors(err.response.data.errors || {});
-    } else {
-      alert(err.response?.data?.message || "Login failed");
-    }
-  }
-};
-
+  };
 
   return (
     <BasicLayout image={bgImage}>
@@ -76,7 +93,6 @@ const handleSubmit = async (e) => {
           <MDTypography variant="h4" fontWeight="medium" color="white" mt={1}>
             Sign in
           </MDTypography>
- 
         </MDBox>
 
         <MDBox pt={4} pb={3} px={3}>

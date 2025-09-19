@@ -6,10 +6,11 @@ import { Autoplay, Navigation, Pagination } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { Helmet } from "react-helmet-async"; // <- Added Helmet
+import { Helmet } from "react-helmet-async";
 
 // Store
 import { usePostStore } from "../store/usePostStore";
+import Loader from "../components/Loader"; // <- Loader import
 
 const Home = () => {
   const { posts, fetchPosts, fetchCategories, loading } = usePostStore();
@@ -19,7 +20,8 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  if (loading) return <p className="text-center mt-10">Loading posts...</p>;
+  // Show loading animation while fetching posts
+  if (loading) return <Loader />;
 
   // Remove HTML tags
   const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
