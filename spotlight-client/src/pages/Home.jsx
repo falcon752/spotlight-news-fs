@@ -67,6 +67,38 @@ const Home = () => {
           name="description"
           content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
         />
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:title"
+          content="Spotlight Media | Investigative Journalism, Fact-Checking & Insights"
+        />
+        <meta
+          property="og:description"
+          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+        <meta
+          property="og:image"
+          content={`${window.location.origin}/seo-image.png`}
+        />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:site_name" content="Spotlight Media" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Spotlight Media | Investigative Journalism, Fact-Checking & Insights"
+        />
+        <meta
+          name="twitter:description"
+          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+        <meta
+          name="twitter:image"
+          content={`${window.location.origin}/seo-image.png`}
+        />
+        <meta name="twitter:site" content="@SpotlightMedia" />{" "}
+        {/* Replace with your Twitter handle */}
       </Helmet>
 
       {/* BLOG HERO */}
@@ -82,8 +114,12 @@ const Home = () => {
                 />
                 <div className="blog-content">
                   <div className="post-meta">
-                    <span className="date">{enrichedPosts[0].formattedDate}</span>
-                    <span className="category">{enrichedPosts[0].categoryName}</span>
+                    <span className="date">
+                      {enrichedPosts[0].formattedDate}
+                    </span>
+                    <span className="category">
+                      {enrichedPosts[0].categoryName}
+                    </span>
                   </div>
                   <h2 className="post-title">
                     <Link
@@ -275,7 +311,11 @@ const Home = () => {
               <div className="col-lg-4" key={post.id}>
                 <article>
                   <div className="post-img">
-                    <img src={post.img} alt={post.title} className="img-fluid" />
+                    <img
+                      src={post.img}
+                      alt={post.title}
+                      className="img-fluid"
+                    />
                   </div>
                   <p className="post-category">{post.categoryName}</p>
                   <h2 className="title">
