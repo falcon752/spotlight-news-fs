@@ -61,37 +61,37 @@ const Home = () => {
     <>
       <Helmet>
         <title>
-          Spotlight Media | Investigative Journalism, Fact-Checking & Insights
+          Spotlight | Investigative Journalism, Fact-Checking & Insights
         </title>
         <meta
           name="description"
-          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
         />
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta
           property="og:title"
-          content="Spotlight Media | Investigative Journalism, Fact-Checking & Insights"
+          content="Spotlight | Investigative Journalism, Fact-Checking & Insights"
         />
         <meta
           property="og:description"
-          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
         />
         <meta
           property="og:image"
           content={`${window.location.origin}/seo-image.png`}
         />
         <meta property="og:url" content={window.location.href} />
-        <meta property="og:site_name" content="Spotlight Media" />
+        <meta property="og:site_name" content="Spotlight" />
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
-          content="Spotlight Media | Investigative Journalism, Fact-Checking & Insights"
+          content="Spotlight | Investigative Journalism, Fact-Checking & Insights"
         />
         <meta
           name="twitter:description"
-          content="Spotlight Media delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
         />
         <meta
           name="twitter:image"
@@ -122,9 +122,7 @@ const Home = () => {
                     </span>
                   </div>
                   <h2 className="post-title">
-                    <Link
-                      to={`/category/${enrichedPosts[0].categorySlug}/${enrichedPosts[0].slug}`}
-                    >
+                    <Link to={`/post/${enrichedPosts[0].slug}`}>
                       {enrichedPosts[0].title}
                     </Link>
                   </h2>
@@ -146,9 +144,7 @@ const Home = () => {
                     <span className="category">{post.categoryName}</span>
                   </div>
                   <h3 className="post-title">
-                    <Link to={`/category/${post.categorySlug}/${post.slug}`}>
-                      {post.title}
-                    </Link>
+                    <Link to={`/post/${post.slug}`}>{post.title}</Link>
                   </h3>
                 </div>
               </article>
@@ -197,15 +193,10 @@ const Home = () => {
                       </span>
                     </div>
                     <h2>
-                      <Link to={`/category/${post.categorySlug}/${post.slug}`}>
-                        {post.title}
-                      </Link>
+                      <Link to={`/post/${post.slug}`}>{post.title}</Link>
                     </h2>
                     <p>{truncateWords(post.desc, 10)}</p>
-                    <Link
-                      to={`/category/${post.categorySlug}/${post.slug}`}
-                      className="read-more"
-                    >
+                    <Link to={`/post/${post.slug}`} className="read-more">
                       Read More <BsArrowRight />
                     </Link>
                   </div>
@@ -252,9 +243,7 @@ const Home = () => {
                       </div>
                     </div>
                     <h2 className="title">
-                      <Link to={`/category/${post.categorySlug}/${post.slug}`}>
-                        {post.title}
-                      </Link>
+                      <Link to={`/post/${post.slug}`}>{post.title}</Link>
                     </h2>
                     <p>{truncateWords(post.desc, 10)}</p>
                   </div>
@@ -280,10 +269,9 @@ const Home = () => {
                       <span className="post-category">{post.categoryName}</span>
                     </div>
                     <h3 className="title">
-                      <Link to={`/category/${post.categorySlug}/${post.slug}`}>
-                        {post.title}
-                      </Link>
+                      <Link to={`/post/${post.slug}`}>{post.title}</Link>
                     </h3>
+
                     <div className="post-meta">
                       <span className="post-date">{post.formattedDate}</span>
                     </div>
@@ -319,10 +307,9 @@ const Home = () => {
                   </div>
                   <p className="post-category">{post.categoryName}</p>
                   <h2 className="title">
-                    <Link to={`/category/${post.categorySlug}/${post.slug}`}>
-                      {post.title}
-                    </Link>
+                    <Link to={`/post/${post.slug}`}>{post.title}</Link>
                   </h2>
+
                   <div className="d-flex align-items-center">
                     <img
                       src={post.authorImg}

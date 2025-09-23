@@ -114,6 +114,40 @@ const BlogDetails = () => {
     <>
       <Helmet>
         <title>{item.title} | Spotlight</title>
+        <meta
+          name="description"
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+        {/* Open Graph / Facebook */}
+        <meta property="og:type" content="website" />
+        <meta
+          property="og:title"
+          content="Spotlight | Investigative Journalism, Fact-Checking & Insights"
+        />
+        <meta
+          property="og:description"
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+        <meta
+          property="og:image"
+          content="https://spotlightonline.ng/seo-image.png" />
+        <meta property="og:url" content={window.location.href} />
+        <meta property="og:site_name" content="Spotlight" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Spotlight | Investigative Journalism, Fact-Checking & Insights"
+        />
+        <meta
+          name="twitter:description"
+          content="Spotlight delivers investigative journalism, in-depth reporting, and fact-checked news. Stay informed with reliable insights."
+        />
+        <meta
+          name="twitter:image"
+          content="https://spotlightonline.ng/seo-image.png" />
+        <meta name="twitter:site" content="@SpotlightMedia" />{" "}
+        {/* Replace with your Twitter handle */}
       </Helmet>
 
       <main className="main">
@@ -137,19 +171,38 @@ const BlogDetails = () => {
                         position: "relative",
                         cursor: isVideo ? "pointer" : "default",
                       }}
-                      onClick={isVideo ? () => openVideo(item.video_url) : undefined}
+                      onClick={
+                        isVideo ? () => openVideo(item.video_url) : undefined
+                      }
                       data-aos="zoom-in"
                     >
                       <img
-                        src={isVideo ? getThumbnail(item.video_url) : item.img || item.thumbnail}
+                        src={
+                          isVideo
+                            ? getThumbnail(item.video_url)
+                            : item.img || item.thumbnail
+                        }
                         alt={item.title}
                         className="img-fluid"
-                        style={{ width: "100%", height: "500px", objectFit: "cover" }}
+                        style={{
+                          width: "100%",
+                          height: "500px",
+                          objectFit: "cover",
+                        }}
                       />
 
                       {/* Share Button */}
-                      <div style={{ position: "absolute", top: "10px", right: "10px" }}>
-                        <ShareDropdown url={window.location.href} title={item.title} />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                        }}
+                      >
+                        <ShareDropdown
+                          url={window.location.href}
+                          title={item.title}
+                        />
                       </div>
 
                       {isVideo && (
@@ -170,18 +223,30 @@ const BlogDetails = () => {
                     </div>
 
                     {/* Post Content */}
-                    <div className="article-content" data-aos="fade-up" data-aos-delay="100" style={{ marginTop: "20px" }}>
+                    <div
+                      className="article-content"
+                      data-aos="fade-up"
+                      data-aos-delay="100"
+                      style={{ marginTop: "20px" }}
+                    >
                       {/* Author Info */}
                       <div className="content-header d-flex align-items-center mb-4">
                         <img
                           src={author?.avatar}
                           alt={author?.name}
-                          style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", marginRight: "15px" }}
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            marginRight: "15px",
+                          }}
                         />
                         <div>
                           <h4>{author?.name}</h4>
                           <p style={{ margin: 0 }}>
-                            <i className="bi bi-calendar3"></i> {formatDate(item.date || item.created_at)}
+                            <i className="bi bi-calendar3"></i>{" "}
+                            {formatDate(item.date || item.created_at)}
                           </p>
                           {/* {item.views !== undefined && <p style={{ fontStyle: "italic" }}>Views: {item.views}</p>} */}
                         </div>
@@ -196,34 +261,49 @@ const BlogDetails = () => {
 
                           // Handle <img>
                           if (trimmed.includes("<img")) {
-                            const srcMatch = trimmed.match(/src=["']([^"']+)["']/);
+                            const srcMatch =
+                              trimmed.match(/src=["']([^"']+)["']/);
                             const src = srcMatch ? srcMatch[1] : null;
                             return src ? (
                               <img
                                 key={idx}
                                 src={src}
                                 alt={item.title}
-                                style={{ width: "100%", height: "500px", objectFit: "cover", margin: "20px 0" }}
+                                style={{
+                                  width: "100%",
+                                  height: "500px",
+                                  objectFit: "cover",
+                                  margin: "20px 0",
+                                }}
                               />
                             ) : null;
                           }
 
                           // Handle <oembed> videos
                           if (trimmed.includes("<oembed")) {
-                            const urlMatch = trimmed.match(/url=["']([^"']+)["']/);
+                            const urlMatch =
+                              trimmed.match(/url=["']([^"']+)["']/);
                             const videoUrl = urlMatch ? urlMatch[1] : null;
                             if (!videoUrl) return null;
 
                             return (
                               <div
                                 key={idx}
-                                style={{ position: "relative", cursor: "pointer", margin: "20px 0" }}
+                                style={{
+                                  position: "relative",
+                                  cursor: "pointer",
+                                  margin: "20px 0",
+                                }}
                                 onClick={() => openVideo(videoUrl)}
                               >
                                 <img
                                   src={getThumbnail(videoUrl)}
                                   alt="Video Thumbnail"
-                                  style={{ width: "100%", height: "500px", objectFit: "cover" }}
+                                  style={{
+                                    width: "100%",
+                                    height: "500px",
+                                    objectFit: "cover",
+                                  }}
                                 />
                                 <div
                                   style={{

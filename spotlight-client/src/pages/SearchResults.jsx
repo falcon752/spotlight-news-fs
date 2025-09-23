@@ -22,25 +22,23 @@ const SearchResults = () => {
     fetchVideos();
   }, [fetchPosts, fetchVideos]);
 
-  // Date formatter: show hours/minutes for today, else show full date
-const formatDate = (dateStr) => {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now - date;
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMinutes / 60);
+  // Date formatter
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMinutes / 60);
 
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffMinutes < 60) return `${diffMinutes}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
 
-  // Month first format: Sep 7, 2025
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-};
-
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
   // Filter Posts
   const filteredPosts = useMemo(() => {
@@ -110,7 +108,6 @@ const formatDate = (dateStr) => {
           <div className="row gy-4">
             {/* Render Posts */}
             {filteredPosts.map((post) => {
-              const category = categories.find((c) => c.id === post.categoryId);
               const author = post.author;
               return (
                 <div className="col-lg-4" key={`post-${post.id}`}>
@@ -118,9 +115,9 @@ const formatDate = (dateStr) => {
                     <div className="post-img">
                       <img src={post.img} alt={post.title} className="img-fluid" />
                     </div>
-                    <p className="post-category">{category?.name}</p>
+                    <p className="post-category">{post.categories[0]?.name}</p>
                     <h2 className="title">
-                      <Link to={`/category/${category?.slug}/${post.slug}`}>{post.title}</Link>
+                      <Link to={`/post/${post.slug}`}>{post.title}</Link>
                     </h2>
                     <div className="d-flex align-items-center">
                       <img

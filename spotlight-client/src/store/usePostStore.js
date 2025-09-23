@@ -20,12 +20,13 @@ export const usePostStore = create((set, get) => ({
       const posts = data.map((post) => ({
         ...post,
         img: post.img ? `${BASE_URL}/storage/${post.img}` : null,
+        slug: post.slug, // ensure slug is present from backend
         author: post.author
           ? {
               ...post.author,
               avatar: post.author.avatar
                 ? `${BASE_URL}/storage/${post.author.avatar}`
-                : `/assets/default_avatar.png`, // <--- use public asset directly
+                : `/assets/default_avatar.png`, // fallback avatar
             }
           : { avatar: `/assets/default_avatar.png` },
         date: post.created_at,

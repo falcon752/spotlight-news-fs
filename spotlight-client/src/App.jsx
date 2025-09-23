@@ -10,7 +10,7 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/404";
 import SearchResults from "./pages/SearchResults";
 import Donate from "./pages/Donate";
-import Loader from "./components/Loader"; 
+import Loader from "./components/Loader";
 import VideosPage from "./pages/VideoPage";
 import axiosClient, { BASE_URL } from "./api/axiosClient";
 
@@ -58,10 +58,7 @@ function App() {
           <Route path="/category/:categorySlug" element={<CategoryPage />} />
 
           {/* Blog post details */}
-          <Route
-            path="/category/:categorySlug/:postSlug"
-            element={<BlogDetails />}
-          />
+          <Route path="/post/:postSlug" element={<BlogDetails />} />
 
           {/* Standalone videos page */}
           <Route path="/videos" element={<VideosPage />} />

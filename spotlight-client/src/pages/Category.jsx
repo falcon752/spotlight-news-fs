@@ -19,14 +19,13 @@ export default function CategoryPage() {
   const stripHtml = (html) => (html ? html.replace(/<[^>]*>/g, "") : "");
 
   // Fetch categories and posts only once
-useEffect(() => {
-  const fetchData = async () => {
-    await fetchCategories();
-    await fetchPosts();
-  };
-  fetchData();
-}, [fetchCategories, fetchPosts]); // Only the functions, not the store values
-
+  useEffect(() => {
+    const fetchData = async () => {
+      await fetchCategories();
+      await fetchPosts();
+    };
+    fetchData();
+  }, [fetchCategories, fetchPosts]); // Only the functions, not the store values
 
   // Filter items based on categorySlug
   useEffect(() => {
@@ -39,8 +38,6 @@ useEffect(() => {
       return;
     }
     setCategory(cat);
-
-    const isVideoCategory = categorySlug === "videos";
 
     const filteredItems = posts.filter((p) =>
       p.categories?.some((c) => c.id === cat.id)
@@ -70,7 +67,6 @@ useEffect(() => {
   if (!category) return <NotFound />;
 
   const pageTitle = `${category.name} | Spotlight`;
-  const isVideoCategory = categorySlug === "videos";
 
   return (
     <div className="category-page">
@@ -106,7 +102,7 @@ useEffect(() => {
                 <div className="container" data-aos="fade-up" data-aos-delay="100">
                   <div className="row gy-4">
                     {items.length > 0 ? (
-                      isVideoCategory ? (
+                      categorySlug === "videos" ? (
                         items.map((video) => (
                           <VideoCard key={video.id} video={video} onPlay={(vid) => setSelectedVideo(vid)} />
                         ))
@@ -116,7 +112,7 @@ useEffect(() => {
                           return (
                             <div className="col-lg-6" key={post.id}>
                               <article>
-                                <Link to={`/category/${category.slug}/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                                <Link to={`/post/${post.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                                   <div className="post-img">
                                     <img src={post.img} alt={post.title} />
                                   </div>
